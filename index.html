@@ -1012,6 +1012,12 @@ footer a:hover { color: var(--text2); }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
 
+/* Text selection highlight */
+::selection {
+  background: var(--highlight);
+  color: #fff;
+}
+
 /* Mobile */
 @media (max-width: 420px) {
   .form-row { grid-template-columns: 1fr; }
@@ -1268,13 +1274,12 @@ import { getFirestore, doc, setDoc, getDoc }
   from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDwo9ylUI7cq7DodekA0vM7iMw-6COp3BI",
-  authDomain: "saemad-8a204.firebaseapp.com",
-  projectId: "saemad-8a204",
-  storageBucket: "saemad-8a204.firebasestorage.app",
-  messagingSenderId: "676932025599",
-  appId: "1:676932025599:web:0076ca1cabc132883a60ca",
-  measurementId: "G-JXTFZ6LGMQ"
+  apiKey: "AIzaSyCTGnFOK7m_xNod8mwBPB5HTgTP2BrNm6o",
+  authDomain: "cyberintel-d0d4f.firebaseapp.com",
+  projectId: "cyberintel-d0d4f",
+  storageBucket: "cyberintel-d0d4f.firebasestorage.app",
+  messagingSenderId: "533279564815",
+  appId: "1:533279564815:web:d373567c2be86311127af7a"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -1307,7 +1312,7 @@ function fieldErr(id, msg) {
 }
 
 async function saveUser(user, extra) {
-  await setDoc(doc(db, 'Kkjhhvvvcc', user.uid), {
+  await setDoc(doc(db, 'kjbvv', user.uid), {
     uid: user.uid,
     name: extra.name || user.displayName || '',
     username: extra.username || '',
@@ -1340,7 +1345,7 @@ window.signInGoogle = async function() {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    const snap = await getDoc(doc(db, 'Kkjhhvvvcc', user.uid));
+    const snap = await getDoc(doc(db, 'kjbvv', user.uid));
     if (!snap.exists()) {
       // New Google user — save minimal profile
       await saveUser(user, { name: user.displayName, username: '', phone: '', domains: [] });
