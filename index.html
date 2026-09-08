@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniRoute — إعداد Claude على Termux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #000000;
+  --bg2: #0a0a0a;
+  --bg3: #111111;
+  --surface: #161616;
+  --surface2: #1e1e1e;
+  --surface3: #242424;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --border3: rgba(255,255,255,0.2);
+  --text: #f4f4f4;
+  --text2: #a8a8a8;
+  --text3: #666666;
+  --white: #ffffff;
+  --accent: #e8e8e8;
+  --accent2: #c0c0c0;
+  --highlight: #7c5cff;
+  --highlight-soft: rgba(124,92,255,0.12);
+  --highlight-border: rgba(124,92,255,0.45);
+  --green: #42be65;
+  --green-bg: rgba(66,190,101,0.08);
+  --green-border: rgba(66,190,101,0.2);
+  --amber: #f1c21b;
+  --amber-bg: rgba(241,194,27,0.08);
+  --amber-border: rgba(241,194,27,0.2);
+  --red: #fa4d56;
+  --red-bg: rgba(250,77,86,0.08);
+  --red-border: rgba(250,77,86,0.2);
+  --blue: #78a9ff;
+  --blue-bg: rgba(120,169,255,0.08);
+  --blue-border: rgba(120,169,255,0.2);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ════════════════════════════════════════
+   PAGE SECTIONS
+════════════════════════════════════════ */
+
+/* Auth overlay */
+#auth-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#auth-overlay .auth-wrap {
+  margin: auto 0;
+}
+
+#main-app { display: none; }
+#main-app.visible { display: block; }
+
+/* ════════════════════════════════════════
+   AUTH PAGE
+════════════════════════════════════════ */
+.auth-wrap {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo img {
+  height: 52px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.auth-logo-text {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: -0.3px;
+  margin-top: 10px;
+}
+
+.auth-logo-sub {
+  font-size: 13px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+
+.auth-tabs {
+  display: flex;
+  background: var(--bg2);
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.auth-tab.active {
+  background: var(--highlight-soft);
+  color: var(--highlight);
+}
+
+/* Google button */
+.google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 20px;
+}
+
+.google-btn:hover {
+  background: var(--surface3);
+  border-color: var(--border3);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Form inputs */
+.form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.field input, .field select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.field input:focus, .field select:focus {
+  border-color: var(--highlight-border);
+}
+
+.field input.error, .field select.error {
+  border-color: var(--red-border);
+}
+
+.field-error {
+  font-size: 11px;
+  color: var(--red);
+  display: none;
+}
+
+.field-error.show { display: block; }
+
+.field select option { background: var(--surface); }
+
+/* domain chips */
+.domain-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.domain-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.domain-chip:hover { border-color: var(--border3); color: var(--text); }
+
+.domain-chip.selected {
+  background: var(--highlight-soft);
+  border-color: var(--highlight-border);
+  color: var(--highlight);
+}
+
+.domain-chip svg { flex-shrink: 0; }
+
+.auth-submit {
+  width: 100%;
+  padding: 12px;
+  margin-top: 4px;
+  background: var(--highlight);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.auth-submit:hover { opacity: 0.88; }
+.auth-submit:disabled { opacity: 0.4; cursor: default; }
+
+.auth-msg {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  text-align: center;
+  display: none;
+}
+
+.auth-msg.success {
+  display: block;
+  background: var(--green-bg);
+  border: 1px solid var(--green-border);
+  color: var(--green);
+}
+
+.auth-msg.error {
+  display: block;
+  background: var(--red-bg);
+  border: 1px solid var(--red-border);
+  color: var(--red);
+}
+
+.auth-msg.info {
+  display: block;
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  color: var(--blue);
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--text3);
+}
+
+.auth-footer a { color: var(--text2); text-decoration: none; }
+.auth-footer a:hover { color: var(--white); }
+
+/* Verification pending screen */
+#verify-screen {
+  text-align: center;
+  padding: 20px 0;
+  display: none;
+}
+
+#verify-screen.show { display: block; }
+
+.verify-icon {
+  width: 64px; height: 64px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+/* ════════════════════════════════════════
+   MAIN APP — HERO
+════════════════════════════════════════ */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 56px 24px 48px;
+  text-align: center;
+  background: linear-gradient(180deg, #000 0%, #0a0a0a 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,255,255,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+  pointer-events: none;
+}
+
+.hero-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.hero-logo img {
+  height: 44px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.hero-logo-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: 0.5px;
+}
+
+.hero h1 {
+  font-size: clamp(24px, 6vw, 36px);
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+.hero h1 span {
+  color: var(--text3);
+}
+
+.hero-desc {
+  font-size: 14px;
+  color: var(--text2);
+  max-width: 380px;
+  margin: 0 auto 32px;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  max-width: 360px;
+  margin: 0 auto;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.stat-item {
+  flex: 1;
+  padding: 14px 12px;
+  border-left: 1px solid var(--border2);
+}
+
+.stat-item:first-child { border-left: none; }
+
+.stat-num {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--white);
+  font-family: var(--mono);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+/* User bar */
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+}
+
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.user-name { font-size: 13px; color: var(--text2); }
+
+.sign-out-btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text3);
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sign-out-btn:hover { border-color: var(--border3); color: var(--text); }
+
+/* ════════════════════════════════════════
+   PROGRESS
+════════════════════════════════════════ */
+.progress-bar-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.progress-label { font-size: 12px; color: var(--text3); white-space: nowrap; }
+
+.progress-track {
+  flex: 1;
+  height: 2px;
+  background: var(--surface3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--highlight);
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+
+.progress-frac {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+/* ════════════════════════════════════════
+   STEPS
+════════════════════════════════════════ */
+.steps-wrap {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: border-color 0.25s;
+}
+
+.step-card.is-active { border-color: var(--highlight-border); }
+
+.step-card.is-done {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.step-num {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text3);
+  flex-shrink: 0;
+  transition: all 0.25s;
+}
+
+.step-card.is-active .step-num {
+  background: var(--highlight);
+  border-color: var(--highlight);
+  color: #fff;
+}
+
+.step-card.is-done .step-num {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+  color: var(--green);
+}
+
+.step-meta { flex: 1; }
+
+.step-eyebrow {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 2px;
+  font-weight: 400;
+}
+
+.step-card.is-active .step-eyebrow { color: var(--text2); }
+
+.step-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text2);
+  transition: color 0.2s;
+}
+
+.step-card.is-active .step-title { color: var(--white); }
+
+.step-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: var(--surface3);
+  color: var(--text3);
+  border: 1px solid var(--border);
+  font-weight: 400;
+}
+
+.step-card.is-active .step-badge {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+  color: var(--green);
+}
+
+/* Step body */
+.step-body { padding: 0 20px 20px; }
+
+.step-desc {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  padding-right: 44px;
+  font-weight: 300;
+}
+
+/* Download link */
+.dl-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 14px;
+  transition: all 0.15s;
+}
+
+.dl-link:hover {
+  border-color: var(--border3);
+  background: var(--surface3);
+}
+
+.dl-link-icon {
+  width: 36px; height: 36px;
+  background: var(--surface3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dl-link-meta { flex: 1; }
+.dl-link-name { font-size: 13px; font-weight: 500; }
+.dl-link-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* Tool selector */
+.tool-selector-label {
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.tool-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tool-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.tool-chip:hover { border-color: var(--border2); color: var(--text); }
+
+.tool-chip.selected {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border3);
+  color: var(--white);
+}
+
+.tool-chip-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.tool-chip.selected .tool-chip-dot {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+/* Terminal block */
+.terminal {
+  background: #000;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.terminal-bar {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.term-dots { display: flex; gap: 5px; }
+.term-dot { width: 8px; height: 8px; border-radius: 50%; }
+.term-dot-r { background: #ff5f57; }
+.term-dot-y { background: #ffbd2e; }
+.term-dot-g { background: #28c840; }
+
+.term-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  flex: 1;
+  text-align: center;
+}
+
+.terminal-body {
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 52px;
+}
+
+.term-prompt {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--green);
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.term-cmd {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: #c9d1d9;
+  word-break: break-all;
+  direction: ltr;
+  text-align: left;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.term-cmd .kw { color: #ff79c6; }
+.term-cmd .str { color: #a5d6ff; }
+.term-cmd .flag { color: #f8f8f2; opacity: 0.6; }
+
+/* Copy + next buttons */
+.btn-row { display: flex; flex-direction: column; gap: 8px; }
+
+.btn-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-copy:hover { background: var(--surface3); border-color: var(--border3); color: var(--text); }
+
+.btn-copy.copied {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+  color: var(--green);
+}
+
+.btn-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  color: #000;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn-next:hover { opacity: 0.88; }
+.btn-next:active { transform: scale(0.99); }
+
+/* Note box */
+.note-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #d4a050;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.note-box svg { flex-shrink: 0; margin-top: 1px; }
+
+/* Done badge inside card */
+.done-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--green);
+  padding: 0 20px 16px 20px;
+  padding-right: 64px;
+}
+
+/* ════════════════════════════════════════
+   FINAL SCREEN
+════════════════════════════════════════ */
+.final-screen {
+  display: none;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.final-screen.show { display: block; }
+
+.final-checkmark {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--green-bg);
+  border: 1px solid var(--green-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.final-screen h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 10px;
+}
+
+.final-screen p {
+  font-size: 14px;
+  color: var(--text2);
+  max-width: 360px;
+  margin: 0 auto 28px;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.endpoint-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  max-width: 380px;
+  margin: 0 auto 20px;
+  text-align: left;
+  direction: ltr;
+}
+
+.ep-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+
+.ep-url {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+
+.ep-model {
+  font-size: 12px;
+  color: var(--text3);
+}
+
+.ep-model code {
+  font-family: var(--mono);
+  color: var(--amber);
+}
+
+.restart-btn {
+  padding: 10px 24px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text3);
+  font-family: var(--sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.restart-btn:hover { border-color: var(--border3); color: var(--text); }
+
+/* ════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════ */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 20px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.6;
+}
+
+footer a { color: var(--text3); text-decoration: none; }
+footer a:hover { color: var(--text2); }
+
+/* ════════════════════════════════════════
+   LOADING SPINNER
+════════════════════════════════════════ */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+
+.spinner.dark {
+  border-color: rgba(255,255,255,0.1);
+  border-top-color: var(--white);
+}
+
+.spinner.show { display: inline-block; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+/* Mobile */
+@media (max-width: 420px) {
+  .form-row { grid-template-columns: 1fr; }
+  .tool-selector { grid-template-columns: 1fr; }
+  .step-desc { padding-right: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     AUTH OVERLAY
+══════════════════════════════════════ -->
+<div id="auth-overlay">
+  <div class="auth-wrap">
+
+    <div class="auth-logo">
+      <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" onerror="this.style.display='none'">
+      <div class="auth-logo-text">OmniRoute</div>
+      <div class="auth-logo-sub">بوابة Claude على Termux</div>
+    </div>
+
+    <div class="auth-card">
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">تسجيل الدخول</button>
+        <button class="auth-tab" onclick="switchTab('register')">إنشاء حساب</button>
+      </div>
+
+      <!-- Google -->
+      <button class="google-btn" onclick="signInGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        متابعة مع Google
+      </button>
+
+      <div class="divider">أو بالبريد الإلكتروني</div>
+
+      <!-- ── LOGIN FORM ── -->
+      <div id="login-form">
+        <div class="form-grid">
+          <div class="field">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="login-email" placeholder="you@example.com" dir="ltr">
+            <span class="field-error" id="login-email-err"></span>
+          </div>
+          <div class="field">
+            <label>كلمة المرور</label>
+            <input type="password" id="login-pass" placeholder="••••••••" dir="ltr">
+            <span class="field-error" id="login-pass-err"></span>
+          </div>
+          <div style="text-align:left">
+            <a href="#" onclick="forgotPass()" style="font-size:12px;color:var(--text3);text-decoration:none">نسيت كلمة المرور؟</a>
+          </div>
+          <button class="auth-submit" id="login-btn" onclick="doLogin()">
+            <span id="login-label">دخول</span>
+            <span class="spinner dark" id="login-spin"></span>
+          </button>
+        </div>
+        <div class="auth-msg" id="login-msg"></div>
+      </div>
+
+      <!-- ── REGISTER FORM ── -->
+      <div id="register-form" style="display:none">
+        <div id="reg-step-1">
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field">
+                <label>الاسم الكامل</label>
+                <input type="text" id="reg-name" placeholder="خالد أحمد">
+                <span class="field-error" id="reg-name-err"></span>
+              </div>
+              <div class="field">
+                <label>اسم المستخدم</label>
+                <input type="text" id="reg-username" placeholder="khaled99" dir="ltr">
+                <span class="field-error" id="reg-username-err"></span>
+              </div>
+            </div>
+            <div class="field">
+              <label>البريد الإلكتروني</label>
+              <input type="email" id="reg-email" placeholder="you@example.com" dir="ltr">
+              <span class="field-error" id="reg-email-err"></span>
+            </div>
+            <div class="field">
+              <label>رقم الهاتف</label>
+              <input type="tel" id="reg-phone" placeholder="+966 5X XXX XXXX" dir="ltr">
+              <span class="field-error" id="reg-phone-err"></span>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label>كلمة المرور</label>
+                <input type="password" id="reg-pass" placeholder="••••••••" dir="ltr">
+                <span class="field-error" id="reg-pass-err"></span>
+              </div>
+              <div class="field">
+                <label>تأكيد كلمة المرور</label>
+                <input type="password" id="reg-pass2" placeholder="••••••••" dir="ltr">
+                <span class="field-error" id="reg-pass2-err"></span>
+              </div>
+            </div>
+            <div class="field">
+              <label>مجال الاستفادة</label>
+              <div class="domain-grid" id="domain-grid">
+                <div class="domain-chip" data-val="AI" onclick="toggleDomain(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                  Artificial Intelligence
+                </div>
+                <div class="domain-chip" data-val="Cybersecurity" onclick="toggleDomain(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Cybersecurity
+                </div>
+                <div class="domain-chip" data-val="Mechatronics" onclick="toggleDomain(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                  Mechatronics
+                </div>
+                <div class="domain-chip" data-val="Data Analysis" onclick="toggleDomain(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  Data Analysis
+                </div>
+                <div class="domain-chip" data-val="Software Engineering" onclick="toggleDomain(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                  Software Engineering
+                </div>
+                <div class="domain-chip" data-val="Electrical Engineering" onclick="toggleDomain(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Electrical Engineering
+                </div>
+                <div class="domain-chip" data-val="Mechanical Engineering" onclick="toggleDomain(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
+                  Mechanical Engineering
+                </div>
+              </div>
+              <span class="field-error" id="reg-domain-err"></span>
+            </div>
+            <button class="auth-submit" id="reg-btn" onclick="doRegister()">
+              <span id="reg-label">إنشاء الحساب</span>
+              <span class="spinner dark" id="reg-spin"></span>
+            </button>
+          </div>
+          <div class="auth-msg" id="reg-msg"></div>
+        </div>
+
+        <!-- Verify pending -->
+        <div id="verify-screen">
+          <div class="verify-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div style="font-size:17px;font-weight:600;color:var(--white);margin-bottom:8px">تحقق من بريدك</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px">
+            أرسلنا رابط تحقق إلى بريدك الإلكتروني.<br>افتحه ثم عد هنا لتسجيل الدخول.
+          </div>
+          <button class="auth-submit" onclick="switchTab('login')" style="margin:0">الذهاب لتسجيل الدخول</button>
+        </div>
+      </div>
+
+      <div class="auth-footer" id="auth-footer-link">
+        للدعم الفني: <a href="mailto:support@404error.qd.je">support@404error.qd.je</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div id="main-app">
+
+  <!-- User bar -->
+  <div class="user-bar">
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <span class="user-name" id="user-name-bar">مرحبًا</span>
+    </div>
+    <button class="sign-out-btn" onclick="doSignOut()">خروج</button>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid-lines"></div>
+    <div class="hero-logo">
+      <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" onerror="this.style.display='none'">
+      <span class="hero-logo-label">OmniRoute</span>
+    </div>
+    <h1>Claude مجانًا<br><span>على Termux</span></h1>
+    <p class="hero-desc">بوابة AI موحدة تتصل بأكثر من 350 مزودًا — اضبط كل شيء بخطوات واضحة مباشرة على هاتفك</p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num">350+</div>
+        <div class="stat-label">مزود AI</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">150+</div>
+        <div class="stat-label">مجاني</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">1.47B</div>
+        <div class="stat-label">token / شهر</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-bar-wrap">
+    <span class="progress-label">التقدم</span>
+    <div class="progress-track">
+      <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+    <span class="progress-frac" id="prog-frac">0 / 6</span>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps-wrap" id="steps-wrap"></div>
+  <div class="final-screen" id="final-screen">
+    <div class="final-checkmark">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2>OmniRoute جاهز</h2>
+    <p>السيرفر يعمل على هاتفك ومتصل بـ Claude وأكثر من 350 مزود AI — كلهم عبر endpoint واحد.</p>
+    <div class="endpoint-box">
+      <div class="ep-label">الـ Endpoint</div>
+      <div class="ep-url">http://localhost:20128/v1</div>
+      <div class="ep-model">استخدم model: <code>auto</code> — OmniRoute يختار الأفضل تلقائيًا</div>
+    </div>
+    <p>أي أداة متوافقة مع OpenAI تعمل فورًا عبر نفس الـ endpoint.</p>
+    <br>
+    <button class="restart-btn" onclick="restartGuide()">إعادة من البداية</button>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div>جميع الحقوق محفوظة &copy; <a href="#">Khaled Ahmed</a></div>
+    <div style="margin-top:4px">دعم فني: <a href="mailto:support@404error.qd.je">support@404error.qd.je</a></div>
+  </footer>
+
+</div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         GoogleAuthProvider, signInWithPopup, sendEmailVerification,
+         sendPasswordResetEmail, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc }
+  from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDwo9ylUI7cq7DodekA0vM7iMw-6COp3BI",
+  authDomain: "saemad-8a204.firebaseapp.com",
+  projectId: "saemad-8a204",
+  storageBucket: "saemad-8a204.firebasestorage.app",
+  messagingSenderId: "676932025599",
+  appId: "1:676932025599:web:0076ca1cabc132883a60ca",
+  measurementId: "G-JXTFZ6LGMQ"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+/* ── helpers ── */
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text; el.className = 'auth-msg ' + type;
+}
+
+function setLoading(btnId, spinId, labelId, loading, labelText) {
+  document.getElementById(btnId).disabled = loading;
+  document.getElementById(spinId).className = 'spinner dark' + (loading ? ' show' : '');
+  document.getElementById(labelId).style.display = loading ? 'none' : 'inline';
+}
+
+function clearErrors() {
+  document.querySelectorAll('.field-error').forEach(e => { e.textContent = ''; e.classList.remove('show'); });
+  document.querySelectorAll('input, select').forEach(e => e.classList.remove('error'));
+}
+
+function fieldErr(id, msg) {
+  const inp = document.getElementById(id);
+  const err = document.getElementById(id + '-err');
+  if (inp) inp.classList.add('error');
+  if (err) { err.textContent = msg; err.classList.add('show'); }
+}
+
+async function saveUser(user, extra) {
+  await setDoc(doc(db, 'Kkjhhvvvcc', user.uid), {
+    uid: user.uid,
+    name: extra.name || user.displayName || '',
+    username: extra.username || '',
+    email: user.email,
+    phone: extra.phone || '',
+    domains: extra.domains || [],
+    photoURL: user.photoURL || '',
+    createdAt: new Date().toISOString()
+  }, { merge: true });
+}
+
+/* ── Tab switch ── */
+window.switchTab = function(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('login-form').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab==='register' ? 'block' : 'none';
+  document.getElementById('reg-step-1').style.display = 'block';
+  document.getElementById('verify-screen').className = 'verify-screen';
+  clearErrors();
+};
+
+/* ── Domain chips ── */
+window.toggleDomain = function(el) { el.classList.toggle('selected'); };
+function selectedDomains() {
+  return Array.from(document.querySelectorAll('.domain-chip.selected')).map(e => e.dataset.val);
+}
+
+/* ── Google sign in ── */
+window.signInGoogle = async function() {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    const snap = await getDoc(doc(db, 'Kkjhhvvvcc', user.uid));
+    if (!snap.exists()) {
+      // New Google user — save minimal profile
+      await saveUser(user, { name: user.displayName, username: '', phone: '', domains: [] });
+    }
+    enterApp(user);
+  } catch (e) {
+    showMsg('login-msg', 'فشل تسجيل الدخول بـ Google: ' + (e.message || e.code), 'error');
+  }
+};
+
+/* ── Login ── */
+window.doLogin = async function() {
+  clearErrors();
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  let valid = true;
+  if (!email) { fieldErr('login-email', 'أدخل البريد الإلكتروني'); valid = false; }
+  if (!pass) { fieldErr('login-pass', 'أدخل كلمة المرور'); valid = false; }
+  if (!valid) return;
+
+  setLoading('login-btn', 'login-spin', 'login-label', true);
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    if (!cred.user.emailVerified) {
+      showMsg('login-msg', 'يرجى التحقق من بريدك الإلكتروني أولًا.', 'info');
+      setLoading('login-btn', 'login-spin', 'login-label', false);
+      return;
+    }
+    enterApp(cred.user);
+  } catch (e) {
+    const msgs = {
+      'auth/user-not-found': 'البريد الإلكتروني غير مسجل.',
+      'auth/wrong-password': 'كلمة المرور غير صحيحة.',
+      'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة.',
+      'auth/too-many-requests': 'محاولات كثيرة. حاول لاحقًا.'
+    };
+    showMsg('login-msg', msgs[e.code] || e.message, 'error');
+    setLoading('login-btn', 'login-spin', 'login-label', false);
+  }
+};
+
+/* ── Register ── */
+window.doRegister = async function() {
+  clearErrors();
+  const name = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const domains = selectedDomains();
+  let valid = true;
+
+  if (!name) { fieldErr('reg-name', 'أدخل اسمك الكامل'); valid = false; }
+  if (!username) { fieldErr('reg-username', 'أدخل اسم المستخدم'); valid = false; }
+  if (!email) { fieldErr('reg-email', 'أدخل البريد الإلكتروني'); valid = false; }
+  if (!phone) { fieldErr('reg-phone', 'أدخل رقم هاتفك'); valid = false; }
+  if (!pass || pass.length < 8) { fieldErr('reg-pass', 'كلمة المرور 8 أحرف على الأقل'); valid = false; }
+  if (pass !== pass2) { fieldErr('reg-pass2', 'كلمتا المرور غير متطابقتين'); valid = false; }
+  if (domains.length === 0) {
+    const err = document.getElementById('reg-domain-err');
+    err.textContent = 'اختر مجالًا على الأقل'; err.classList.add('show'); valid = false;
+  }
+  if (!valid) return;
+
+  setLoading('reg-btn', 'reg-spin', 'reg-label', true);
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await saveUser(cred.user, { name, username, phone, domains });
+    await sendEmailVerification(cred.user);
+    document.getElementById('reg-step-1').style.display = 'none';
+    document.getElementById('verify-screen').className = 'verify-screen show';
+  } catch (e) {
+    const msgs = {
+      'auth/email-already-in-use': 'هذا البريد مسجل مسبقًا.',
+      'auth/invalid-email': 'البريد الإلكتروني غير صالح.',
+      'auth/weak-password': 'كلمة المرور ضعيفة جدًا.'
+    };
+    showMsg('reg-msg', msgs[e.code] || e.message, 'error');
+    setLoading('reg-btn', 'reg-spin', 'reg-label', false);
+  }
+};
+
+/* ── Forgot password ── */
+window.forgotPass = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) {
+    fieldErr('login-email', 'أدخل بريدك الإلكتروني أولًا');
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showMsg('login-msg', 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك.', 'success');
+  } catch (e) {
+    showMsg('login-msg', 'تعذّر الإرسال. تأكد من البريد الإلكتروني.', 'error');
+  }
+};
+
+/* ── Sign out ── */
+window.doSignOut = async function() {
+  await signOut(auth);
+  document.getElementById('main-app').classList.remove('visible');
+  document.getElementById('auth-overlay').style.display = 'flex';
+  switchTab('login');
+};
+
+/* ── Enter app ── */
+function enterApp(user) {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('main-app').classList.add('visible');
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('user-name-bar').textContent = 'أهلًا، ' + name;
+  const avatar = document.getElementById('user-avatar');
+  if (user.photoURL) {
+    avatar.innerHTML = `<img src="${user.photoURL}" alt="">`;
+  } else {
+    avatar.textContent = name[0].toUpperCase();
+  }
+  renderSteps();
+}
+
+/* ── Auth state ── */
+onAuthStateChanged(auth, user => {
+  if (user && user.emailVerified) {
+    enterApp(user);
+  }
+});
+
+</script>
+
+<!-- Guide logic -->
+<script>
+const TOOLS = {
+  'claude-code': 'Claude Code',
+  'cursor': 'Cursor CLI',
+  'cline': 'Cline',
+  'opencode': 'OpenCode',
+  'aider': 'Aider',
+  'continue': 'Continue'
+};
+
+const STEPS = [
+  {
+    title: "تنزيل وتثبيت Termux",
+    badge: "مطلوب",
+    desc: `Termux هو محاكي طرفية (terminal) مجاني لنظام Android يتيح لك تشغيل أوامر Linux على هاتفك.
+يُنصح بتحميله من F-Droid وليس من Google Play لأن إصدار F-Droid يحصل على تحديثات أسرع ولا يواجه قيود.`,
+    downloads: [
+      {
+        href: "https://f-droid.org/packages/com.termux/",
+        label: "Termux",
+        sub: "الإصدار الرسمي من F-Droid (موصى به)",
+        icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>`
+      }
+    ],
+    note: "بعد التثبيت افتح Termux وانتظر حتى يكتمل إعداد البيئة تلقائيًا.",
+    noCmd: true
+  },
+  {
+    title: "تحديث قائمة الحزم",
+    badge: "أول أمر",
+    desc: "قبل أي تثبيت لازم نحدّث قاعدة بيانات حزم Termux لنضمن الحصول على أحدث الإصدارات. اختر أداتك وانسخ الأمر.",
+    cmd: "pkg update -y && pkg upgrade -y",
+    note: "إذا سألك Termux عن استبدال ملف إعداد اكتب Y واضغط Enter.",
+    toolSelector: false
+  },
+  {
+    title: "تثبيت Node.js",
+    badge: "أساسي",
+    desc: "OmniRoute مبني على Node.js. هنثبّته الآن مع curl الذي سنستخدمه لاحقًا لاختبار الاتصال.",
+    cmd: "pkg install -y nodejs curl",
+    note: "حجم التنزيل تقريبًا 60–80 ميجابايت. تأكد من اتصال جيد.",
+    toolSelector: false
+  },
+  {
+    title: "تثبيت OmniRoute",
+    badge: "الأهم",
+    desc: "نثبّت OmniRoute كحزمة عالمية (global) عبر npm. بعد التثبيت تصبح أداة omniroute متاحة من أي مسار داخل Termux.",
+    cmd: "npm install -g omniroute",
+    note: "قد يستغرق التثبيت من دقيقة إلى ثلاث دقائق حسب سرعة الاتصال.",
+    toolSelector: false
+  },
+  {
+    title: "تشغيل السيرفر",
+    badge: "تشغيل",
+    desc: `افتح جلسة Termux جديدة بالضغط المطوّل ثم New Session أو عبر swipe يسار.
+شغّل السيرفر في هذه الجلسة — سيستمع على البورت 20128 ويجب أن يبقى يعمل.`,
+    cmd: "omniroute start",
+    note: "إذا أردت تشغيله في الخلفية استخدم: omniroute start &",
+    toolSelector: false
+  },
+  {
+    title: "ربط الأداة واختبار الاتصال",
+    badge: "اختبار",
+    desc: "افتح tab جديد في Termux. اختر الأداة التي تريد ربطها بـ OmniRoute — سيتغير الأمر تلقائيًا ليناسبها.",
+    cmds: {
+      'claude-code': 'omniroute run claude --model auto',
+      'cursor': 'omniroute configure cursor',
+      'cline': 'omniroute configure cline',
+      'opencode': 'omniroute run opencode --model auto',
+      'aider': 'omniroute run aider --model auto',
+      'continue': 'omniroute configure continue',
+      '_test': 'curl http://localhost:20128/v1/chat/completions -H "Content-Type: application/json" -d \'{"model":"auto","messages":[{"role":"user","content":"مرحبا"}]}\''
+    },
+    defaultTool: '_test',
+    note: "إذا ظهر JSON يحتوي على content فالسيرفر يعمل بنجاح."
+  }
+];
+
+let currentStep = 0;
+let selectedTools = {};
+
+function pct() {
+  return Math.round((currentStep / STEPS.length) * 100);
+}
+
+function renderSteps() {
+  const wrap = document.getElementById('steps-wrap');
+  const pf = document.getElementById('prog-fill');
+  const pfrac = document.getElementById('prog-frac');
+  pf.style.width = pct() + '%';
+  pfrac.textContent = currentStep + ' / ' + STEPS.length;
+
+  if (currentStep >= STEPS.length) {
+    wrap.innerHTML = '';
+    document.getElementById('final-screen').classList.add('show');
+    return;
+  }
+
+  document.getElementById('final-screen').classList.remove('show');
+
+  let html = '';
+  STEPS.forEach((s, i) => {
+    const isDone = i < currentStep;
+    const isActive = i === currentStep;
+    const cls = isDone ? 'step-card is-done' : isActive ? 'step-card is-active' : 'step-card';
+    const numTxt = isDone
+      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
+      : (i + 1);
+    const eyebrow = isDone ? 'مكتملة' : isActive ? 'الخطوة الحالية' : 'لاحقًا';
+
+    html += `<div class="${cls}" id="sc-${i}">
+      <div class="step-head">
+        <div class="step-num">${numTxt}</div>
+        <div class="step-meta">
+          <div class="step-eyebrow">${eyebrow}</div>
+          <div class="step-title">${s.title}</div>
+        </div>
+        <div class="step-badge">${s.badge}</div>
+      </div>`;
+
+    if (isActive) {
+      html += `<div class="step-body">
+        <div class="step-desc">${s.desc.replace(/\n/g,'<br>')}</div>`;
+
+      // Download links
+      if (s.downloads) {
+        s.downloads.forEach(d => {
+          html += `<a href="${d.href}" target="_blank" class="dl-link">
+            <div class="dl-link-icon">${d.icon}</div>
+            <div class="dl-link-meta">
+              <div class="dl-link-name">${d.label}</div>
+              <div class="dl-link-sub">${d.sub}</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>`;
+        });
+      }
+
+      // Tool selector for last step
+      if (s.cmds) {
+        const activeTool = selectedTools[i] || s.defaultTool;
+        const toolOpts = Object.assign({ '_test': 'اختبار الاتصال فقط (curl)' }, TOOLS);
+        html += `<div class="tool-selector-label">اختر الأداة التي تريد ربطها:</div>
+          <div class="tool-selector">`;
+        Object.entries(toolOpts).forEach(([k, v]) => {
+          html += `<div class="tool-chip${k===activeTool?' selected':''}" onclick="selectTool(${i},'${k}')">
+            <div class="tool-chip-dot"></div>${v}
+          </div>`;
+        });
+        html += `</div>`;
+
+        // Terminal with selected command
+        const cmd = s.cmds[activeTool] || s.cmds[s.defaultTool];
+        html += buildTerminal(cmd, 'cmd-' + i);
+      } else if (!s.noCmd) {
+        // Regular command
+        html += buildTerminal(s.cmd, 'cmd-' + i);
+      }
+
+      if (s.note) {
+        html += `<div class="note-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>${s.note}</span>
+        </div>`;
+      }
+
+      html += `<div class="btn-row">`;
+      if (!s.noCmd) {
+        html += `<button class="btn-copy" id="cp-${i}" onclick="copyCmd(${i})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          انسخ الأمر والصقه في Termux
+        </button>`;
+      }
+      html += `<button class="btn-next" onclick="nextStep()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        ${i < STEPS.length-1 ? 'نفّذت — الخطوة التالية' : 'إنهاء'}
+      </button></div>`;
+
+      html += `</div>`;
+    } else if (isDone) {
+      html += `<div class="done-tag">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        تم تنفيذها بنجاح
+      </div>`;
+    }
+
+    html += `</div>`;
+  });
+
+  wrap.innerHTML = html;
+}
+
+function buildTerminal(cmd, id) {
+  const safe = cmd.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<div class="terminal">
+    <div class="terminal-bar">
+      <div class="term-dots">
+        <div class="term-dot term-dot-r"></div>
+        <div class="term-dot term-dot-y"></div>
+        <div class="term-dot term-dot-g"></div>
+      </div>
+      <div class="term-title">Termux</div>
+    </div>
+    <div class="terminal-body">
+      <span class="term-prompt">$</span>
+      <div class="term-cmd" id="${id}">${safe}</div>
+    </div>
+  </div>`;
+}
+
+function getCurrentCmd(stepIdx) {
+  const s = STEPS[stepIdx];
+  if (s.cmds) {
+    const tool = selectedTools[stepIdx] || s.defaultTool;
+    return s.cmds[tool];
+  }
+  return s.cmd || '';
+}
+
+window.selectTool = function(stepIdx, toolKey) {
+  selectedTools[stepIdx] = toolKey;
+  renderSteps();
+};
+
+window.copyCmd = function(stepIdx) {
+  const cmd = getCurrentCmd(stepIdx);
+  if (!cmd) return;
+  const btn = document.getElementById('cp-' + stepIdx);
+  navigator.clipboard.writeText(cmd).then(() => {
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> تم النسخ — افتح Termux والصق`;
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> انسخ الأمر والصقه في Termux`;
+      btn.classList.remove('copied');
+    }, 3000);
+  }).catch(() => {
+    btn.textContent = 'انسخ من الحقل أعلاه يدويًا';
+  });
+};
+
+window.nextStep = function() {
+  if (currentStep < STEPS.length) currentStep++;
+  renderSteps();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.restartGuide = function() {
+  currentStep = 0;
+  selectedTools = {};
+  document.getElementById('final-screen').classList.remove('show');
+  renderSteps();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+</script>
+
+</body>
+</html>
