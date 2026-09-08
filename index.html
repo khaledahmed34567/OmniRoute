@@ -467,6 +467,62 @@ body {
   font-weight: 400;
 }
 
+/* Platform / OS selection */
+.platform-select {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 28px 20px 8px;
+  text-align: center;
+}
+
+.platform-select-title {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.os-select { margin-top: 22px; }
+
+.platform-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.platform-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  color: var(--text2);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.platform-chip:hover { border-color: var(--border3); color: var(--text); }
+
+.platform-chip.selected {
+  background: var(--highlight-soft);
+  border-color: var(--highlight-border);
+  color: var(--highlight);
+}
+
+.platform-chip-sub {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 400;
+}
+
+.platform-chip.selected .platform-chip-sub { color: var(--highlight); opacity: 0.75; }
+
 /* User bar */
 .user-bar {
   display: flex;
@@ -1172,9 +1228,14 @@ footer a:hover { color: var(--text2); }
           </div>
           <div style="font-size:17px;font-weight:600;color:var(--white);margin-bottom:8px">تحقق من بريدك</div>
           <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px">
-            أرسلنا رابط تحقق إلى بريدك الإلكتروني.<br>افتحه ثم عد هنا لتسجيل الدخول.
+            أرسلنا رابط تحقق إلى بريدك الإلكتروني.<br>افتحه ثم عد هنا لتسجيل الدخول.<br>
+            <span style="color:var(--text3);font-size:12px">لو مالقيتوش، افحص مجلد الرسائل غير المرغوب فيها (Spam / Junk).</span>
           </div>
           <button class="auth-submit" onclick="switchTab('login')" style="margin:0">الذهاب لتسجيل الدخول</button>
+          <button class="restart-btn" onclick="resendVerification()" style="margin-top:10px;width:100%" id="resend-verify-btn">
+            إعادة إرسال رابط التفعيل
+          </button>
+          <div class="auth-msg" id="verify-msg"></div>
         </div>
       </div>
 
@@ -1210,8 +1271,8 @@ footer a:hover { color: var(--text2); }
       <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" onerror="this.style.display='none'">
       <span class="hero-logo-label">OmniRoute</span>
     </div>
-    <h1>Claude مجانًا<br><span>على Termux</span></h1>
-    <p class="hero-desc">بوابة AI موحدة تتصل بأكثر من 350 مزودًا — اضبط كل شيء بخطوات واضحة مباشرة على هاتفك</p>
+    <h1>Claude مجانًا<br><span>على أي جهاز</span></h1>
+    <p class="hero-desc">بوابة AI موحدة تتصل بأكثر من 350 مزودًا — اضبط كل شيء بخطوات واضحة على جهازك</p>
     <div class="hero-stats">
       <div class="stat-item">
         <div class="stat-num">350+</div>
@@ -1228,8 +1289,37 @@ footer a:hover { color: var(--text2); }
     </div>
   </div>
 
+  <!-- Platform selection -->
+  <div class="platform-select" id="platform-select">
+    <div class="platform-select-title">هتشغّل OmniRoute من إيه؟</div>
+    <div class="platform-chips" id="device-chips">
+      <div class="platform-chip" data-device="phone" onclick="choosePlatform('phone')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        الهاتف <span class="platform-chip-sub">Termux (Android)</span>
+      </div>
+      <div class="platform-chip" data-device="laptop" onclick="choosePlatform('laptop')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="13" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+        اللابتوب / الكمبيوتر
+      </div>
+    </div>
+
+    <div class="os-select" id="os-select" style="display:none">
+      <div class="platform-select-title">نظام التشغيل؟</div>
+      <div class="platform-chips" id="os-chips">
+        <div class="platform-chip" data-os="windows" onclick="chooseOS('windows')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>
+          Windows
+        </div>
+        <div class="platform-chip" data-os="linux" onclick="chooseOS('linux')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M8 15c1 1 2 1.5 4 1.5s3-.5 4-1.5"/></svg>
+          Linux
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Progress bar -->
-  <div class="progress-bar-wrap">
+  <div class="progress-bar-wrap" id="progress-bar-wrap" style="display:none">
     <span class="progress-label">التقدم</span>
     <div class="progress-track">
       <div class="progress-fill" id="prog-fill" style="width:0%"></div>
@@ -1244,7 +1334,7 @@ footer a:hover { color: var(--text2); }
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
     <h2>OmniRoute جاهز</h2>
-    <p>السيرفر يعمل على هاتفك ومتصل بـ Claude وأكثر من 350 مزود AI — كلهم عبر endpoint واحد.</p>
+    <p>السيرفر شغال على جهازك ومتصل بـ Claude وأكثر من 350 مزود AI — كلهم عبر endpoint واحد.</p>
     <div class="endpoint-box">
       <div class="ep-label">الـ Endpoint</div>
       <div class="ep-url">http://localhost:20128/v1</div>
@@ -1345,10 +1435,15 @@ window.signInGoogle = async function() {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    const snap = await getDoc(doc(db, 'kjbvv', user.uid));
-    if (!snap.exists()) {
-      // New Google user — save minimal profile
-      await saveUser(user, { name: user.displayName, username: '', phone: '', domains: [] });
+    try {
+      const snap = await getDoc(doc(db, 'kjbvv', user.uid));
+      if (!snap.exists()) {
+        // New Google user — save minimal profile
+        await saveUser(user, { name: user.displayName, username: '', phone: '', domains: [] });
+      }
+    } catch (dbErr) {
+      // Don't block sign-in if Firestore write/read fails — the user is authenticated either way.
+      console.error('Firestore error during Google sign-in:', dbErr);
     }
     enterApp(user);
   } catch (e) {
@@ -1414,33 +1509,80 @@ window.doRegister = async function() {
   setLoading('reg-btn', 'reg-spin', 'reg-label', true);
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    await saveUser(cred.user, { name, username, phone, domains });
-    await sendEmailVerification(cred.user);
+
+    // Send the verification email first — this must not depend on Firestore succeeding.
+    try {
+      await sendEmailVerification(cred.user);
+    } catch (mailErr) {
+      console.error('sendEmailVerification failed:', mailErr);
+    }
+
+    // Save the profile to Firestore separately — a Firestore issue shouldn't block registration.
+    try {
+      await saveUser(cred.user, { name, username, phone, domains });
+    } catch (dbErr) {
+      console.error('saveUser (Firestore) failed:', dbErr);
+    }
+
     document.getElementById('reg-step-1').style.display = 'none';
     document.getElementById('verify-screen').className = 'verify-screen show';
+    setLoading('reg-btn', 'reg-spin', 'reg-label', false);
   } catch (e) {
     const msgs = {
       'auth/email-already-in-use': 'هذا البريد مسجل مسبقًا.',
       'auth/invalid-email': 'البريد الإلكتروني غير صالح.',
-      'auth/weak-password': 'كلمة المرور ضعيفة جدًا.'
+      'auth/weak-password': 'كلمة المرور ضعيفة جدًا.',
+      'auth/operation-not-allowed': 'التسجيل بالبريد الإلكتروني غير مفعّل على المشروع حاليًا.'
     };
-    showMsg('reg-msg', msgs[e.code] || e.message, 'error');
+    showMsg('reg-msg', msgs[e.code] || (e.message || e.code), 'error');
     setLoading('reg-btn', 'reg-spin', 'reg-label', false);
   }
 };
 
+/* ── Resend verification email ── */
+window.resendVerification = async function() {
+  const user = auth.currentUser;
+  const btn = document.getElementById('resend-verify-btn');
+  if (!user) {
+    showMsg('verify-msg', 'سجّل الدخول أولًا ثم أعد المحاولة.', 'error');
+    return;
+  }
+  btn.disabled = true;
+  try {
+    await sendEmailVerification(user);
+    showMsg('verify-msg', 'تم إعادة إرسال رابط التفعيل إلى بريدك.', 'success');
+  } catch (e) {
+    console.error('resendVerification failed:', e);
+    const msgs = {
+      'auth/too-many-requests': 'محاولات كثيرة جدًا. استنى شوية وحاول تاني.'
+    };
+    showMsg('verify-msg', msgs[e.code] || ('تعذّر إعادة الإرسال: ' + (e.message || e.code)), 'error');
+  }
+  btn.disabled = false;
+};
+
 /* ── Forgot password ── */
 window.forgotPass = async function() {
-  const email = document.getElementById('login-email').value.trim();
+  clearErrors();
+  const emailInput = document.getElementById('login-email');
+  const email = emailInput.value.trim();
   if (!email) {
     fieldErr('login-email', 'أدخل بريدك الإلكتروني أولًا');
+    emailInput.focus();
     return;
   }
   try {
     await sendPasswordResetEmail(auth, email);
-    showMsg('login-msg', 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك.', 'success');
+    showMsg('login-msg', 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك — تفقّد صندوق الوارد ومجلد الرسائل غير المرغوب فيها (Spam).', 'success');
   } catch (e) {
-    showMsg('login-msg', 'تعذّر الإرسال. تأكد من البريد الإلكتروني.', 'error');
+    console.error('sendPasswordResetEmail failed:', e);
+    const msgs = {
+      'auth/user-not-found': 'لا يوجد حساب مسجل بهذا البريد الإلكتروني.',
+      'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة.',
+      'auth/operation-not-allowed': 'خاصية إعادة تعيين كلمة المرور غير مفعّلة على المشروع حاليًا.',
+      'auth/too-many-requests': 'محاولات كثيرة جدًا. حاول لاحقًا.'
+    };
+    showMsg('login-msg', msgs[e.code] || ('تعذّر الإرسال: ' + (e.message || e.code)), 'error');
   }
 };
 
@@ -1464,7 +1606,6 @@ function enterApp(user) {
   } else {
     avatar.textContent = name[0].toUpperCase();
   }
-  renderSteps();
 }
 
 /* ── Auth state ── */
@@ -1487,7 +1628,7 @@ const TOOLS = {
   'continue': 'Continue'
 };
 
-const STEPS = [
+const STEPS_PHONE = [
   {
     title: "تنزيل وتثبيت Termux",
     badge: "مطلوب",
@@ -1554,6 +1695,162 @@ const STEPS = [
     note: "إذا ظهر JSON يحتوي على content فالسيرفر يعمل بنجاح."
   }
 ];
+
+const DOWNLOAD_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+
+const STEPS_WINDOWS = [
+  {
+    title: "تثبيت Node.js على ويندوز",
+    badge: "مطلوب",
+    desc: `OmniRoute مبني على Node.js، فلازم نثبّته الأول. حمّل نسخة LTS (الموصى بها والأكثر استقرارًا) من الموقع الرسمي.
+شغّل ملف الـ .msi اللي هينزل، واضغط Next على كل الخطوات، ومهم جدًا تسيب خيار "Add to PATH" مفعّل زي ما هو افتراضيًا.`,
+    downloads: [
+      {
+        href: "https://nodejs.org/en/download",
+        label: "Node.js LTS — Windows Installer",
+        sub: "الموقع الرسمي — اختر Windows Installer (.msi)",
+        icon: DOWNLOAD_ICON
+      }
+    ],
+    note: "بعد ما التثبيت يخلص، لو الويزارد طلب منك إعادة تشغيل الجهاز، أعد تشغيله قبل ما تكمل.",
+    noCmd: true
+  },
+  {
+    title: "التأكد من التثبيت",
+    badge: "تحقق",
+    desc: `افتح Command Prompt أو PowerShell: اضغط على مفتاح ⊞ Win في الكيبورد، اكتب "cmd" أو "PowerShell"، واضغط Enter.
+بعدين شغّل الأمر ده للتأكد إن Node.js وnpm اتثبتوا صح:`,
+    cmd: "node -v && npm -v",
+    note: "المفروض تشوف رقمين إصدار زي v20.11.0 و10.2.4. لو ظهرت رسالة 'not recognized' معناها الـ PATH محتاج إعادة تشغيل الجهاز — أعد التشغيل وجرب تاني.",
+    toolSelector: false
+  },
+  {
+    title: "تثبيت OmniRoute",
+    badge: "الأهم",
+    desc: "من نفس نافذة Command Prompt أو PowerShell، ثبّت OmniRoute كأداة عالمية (global) عبر npm. بعد التثبيت هتقدر تستخدم أمر omniroute من أي مكان.",
+    cmd: "npm install -g omniroute",
+    note: "قد يستغرق دقيقة لثلاث دقائق حسب سرعة الإنترنت. لو ظهرت مشكلة صلاحيات، شغّل Command Prompt كـ 'Run as Administrator'.",
+    toolSelector: false
+  },
+  {
+    title: "تشغيل السيرفر",
+    badge: "تشغيل",
+    desc: `افتح نافذة Command Prompt أو PowerShell جديدة (سيبها مفتوحة طول ما بتستخدم الأداة) وشغّل السيرفر — هيستمع على البورت 20128.`,
+    cmd: "omniroute start",
+    note: "متقفلش النافذة دي وإنت شغّال — قفلها بس لما تخلص عشان توقف السيرفر.",
+    toolSelector: false
+  },
+  {
+    title: "ربط الأداة واختبار الاتصال",
+    badge: "اختبار",
+    desc: "افتح نافذة Command Prompt أو PowerShell جديدة تانية (السيرفر لازم يفضل شغال في النافذة الأولى). اختر الأداة اللي عايز تربطها — الأمر هيتغير تلقائيًا.",
+    cmds: {
+      'claude-code': 'omniroute run claude --model auto',
+      'cursor': 'omniroute configure cursor',
+      'cline': 'omniroute configure cline',
+      'opencode': 'omniroute run opencode --model auto',
+      'aider': 'omniroute run aider --model auto',
+      'continue': 'omniroute configure continue',
+      '_test': 'curl http://localhost:20128/v1/chat/completions -H "Content-Type: application/json" -d "{\\"model\\":\\"auto\\",\\"messages\\":[{\\"role\\":\\"user\\",\\"content\\":\\"مرحبا\\"}]}"'
+    },
+    defaultTool: '_test',
+    note: "curl مثبت افتراضيًا في ويندوز 10/11. لو ظهر JSON فيه content فالسيرفر شغال تمام."
+  }
+];
+
+const STEPS_LINUX = [
+  {
+    title: "تحديث النظام",
+    badge: "أول أمر",
+    desc: `افتح Terminal وحدّث قائمة الحزم قبل أي تثبيت. الأمر التالي لتوزيعات Debian/Ubuntu (الأشهر).
+لو بتستخدم Fedora أو Arch أو توزيعة تانية، قوللي وهجهزلك الأوامر المناسبة ليها.`,
+    cmd: "sudo apt update && sudo apt upgrade -y",
+    note: "هيطلب باسورد المستخدم (كلمة السر مش هتظهر وإنت بتكتبها، ده طبيعي) — اكتبها واضغط Enter.",
+    toolSelector: false
+  },
+  {
+    title: "تثبيت Node.js وcurl",
+    badge: "أساسي",
+    desc: `هنثبّت Node.js من مستودع NodeSource للحصول على أحدث إصدار LTS بدل نسخة apt القديمة، مع curl لاختبار الاتصال لاحقًا.`,
+    cmd: "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs curl",
+    downloads: [
+      {
+        href: "https://github.com/nodesource/distributions",
+        label: "NodeSource Distributions",
+        sub: "المصدر الرسمي للأمر (لو حبيت تراجعه بنفسك)",
+        icon: DOWNLOAD_ICON
+      }
+    ],
+    note: "بعد التثبيت تأكد بـ: node -v && npm -v",
+    toolSelector: false
+  },
+  {
+    title: "تثبيت OmniRoute",
+    badge: "الأهم",
+    desc: "نثبّت OmniRoute كحزمة عالمية (global) عبر npm.",
+    cmd: "sudo npm install -g omniroute",
+    note: "لو ظهر خطأ صلاحيات (EACCES) جرب: sudo npm install -g omniroute --unsafe-perm",
+    toolSelector: false
+  },
+  {
+    title: "تشغيل السيرفر",
+    badge: "تشغيل",
+    desc: `افتح تبويب Terminal جديد (Ctrl+Shift+T غالبًا) وشغّل السيرفر — هيستمع على البورت 20128 ويجب أن يبقى يعمل.`,
+    cmd: "omniroute start",
+    note: "لو عايز تشغّله في الخلفية استخدم: omniroute start &",
+    toolSelector: false
+  },
+  {
+    title: "ربط الأداة واختبار الاتصال",
+    badge: "اختبار",
+    desc: "افتح تبويب Terminal جديد (السيرفر لازم يفضل شغال في التبويب الأول). اختر الأداة اللي عايز تربطها بـ OmniRoute.",
+    cmds: {
+      'claude-code': 'omniroute run claude --model auto',
+      'cursor': 'omniroute configure cursor',
+      'cline': 'omniroute configure cline',
+      'opencode': 'omniroute run opencode --model auto',
+      'aider': 'omniroute run aider --model auto',
+      'continue': 'omniroute configure continue',
+      '_test': 'curl http://localhost:20128/v1/chat/completions -H "Content-Type: application/json" -d \'{"model":"auto","messages":[{"role":"user","content":"مرحبا"}]}\''
+    },
+    defaultTool: '_test',
+    note: "إذا ظهر JSON يحتوي على content فالسيرفر يعمل بنجاح."
+  }
+];
+
+let STEPS = null;
+let currentDevice = null;
+let currentOS = null;
+
+window.choosePlatform = function(device) {
+  currentDevice = device;
+  document.querySelectorAll('#device-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.device === device));
+  if (device === 'phone') {
+    document.getElementById('os-select').style.display = 'none';
+    currentOS = null;
+    startGuide(STEPS_PHONE);
+  } else {
+    document.getElementById('os-select').style.display = 'block';
+    document.getElementById('os-select').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+};
+
+window.chooseOS = function(os) {
+  currentOS = os;
+  document.querySelectorAll('#os-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.os === os));
+  startGuide(os === 'windows' ? STEPS_WINDOWS : STEPS_LINUX);
+};
+
+function startGuide(stepsArr) {
+  STEPS = stepsArr;
+  currentStep = 0;
+  selectedTools = {};
+  document.getElementById('progress-bar-wrap').style.display = 'flex';
+  document.getElementById('final-screen').classList.remove('show');
+  renderSteps();
+  document.getElementById('progress-bar-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 
 let currentStep = 0;
 let selectedTools = {};
