@@ -523,6 +523,106 @@ body {
 
 .platform-chip.selected .platform-chip-sub { color: var(--highlight); opacity: 0.75; }
 
+/* Quick run card */
+.quickrun-card {
+  max-width: 640px;
+  margin: 0 auto 20px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--highlight-border);
+  border-radius: var(--radius-lg);
+}
+
+.quickrun-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.quickrun-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--highlight);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quickrun-note {
+  font-size: 11.5px;
+  color: var(--text3);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.quickrun-toggle {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Resume banner */
+.resume-banner {
+  max-width: 640px;
+  margin: 0 auto 16px;
+  padding: 14px 16px;
+  background: var(--highlight-soft);
+  border: 1px solid var(--highlight-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.resume-banner-text { font-size: 13px; color: var(--text); }
+.resume-banner-text b { color: var(--highlight); }
+
+.resume-banner-actions { display: flex; gap: 8px; }
+
+.resume-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--highlight-border);
+  background: var(--highlight);
+  color: #fff;
+}
+
+.resume-btn.secondary {
+  background: transparent;
+  color: var(--text2);
+  border-color: var(--border2);
+}
+
+/* User domains chips */
+.user-domains {
+  max-width: 640px;
+  margin: 0 auto 4px;
+  padding: 0 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.user-domain-chip {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+}
+
 /* User bar */
 .user-bar {
   display: flex;
@@ -1027,6 +1127,137 @@ body {
 
 .restart-btn:hover { border-color: var(--border3); color: var(--text); }
 
+/* Live server status checker */
+.status-check {
+  max-width: 360px;
+  margin: 20px auto 0;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+}
+
+.status-check-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.status-check-btn:hover { border-color: var(--highlight-border); color: var(--text); }
+.status-check-btn:disabled { opacity: 0.6; cursor: default; }
+
+.server-status {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.server-status.show { display: flex; }
+.server-status.checking { background: rgba(255,255,255,0.04); color: var(--text2); }
+.server-status.online { background: rgba(74,222,128,0.1); color: var(--green); }
+.server-status.offline { background: rgba(248,113,113,0.1); color: var(--red); }
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.server-status.checking .status-dot { animation: statusPulse 1s ease-in-out infinite; }
+@keyframes statusPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.status-note {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.6;
+}
+.status-note a { color: var(--highlight); }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed;
+  top: -10px;
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 2000;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  to { transform: translateY(100vh) rotate(360deg); opacity: 0.2; }
+}
+
+/* FAQ */
+.faq-section {
+  max-width: 640px;
+  margin: 8px auto 24px;
+  padding: 0 20px;
+}
+
+.faq-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.faq-item {
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.faq-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  user-select: none;
+}
+
+.faq-q svg { flex-shrink: 0; transition: transform 0.2s; color: var(--text3); }
+.faq-item.open .faq-q svg { transform: rotate(45deg); color: var(--highlight); }
+
+.faq-a {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, padding 0.25s ease;
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.7;
+  padding: 0 14px;
+}
+
+.faq-item.open .faq-a {
+  max-height: 300px;
+  padding: 0 14px 14px;
+}
+
 /* ════════════════════════════════════════
    FOOTER
 ════════════════════════════════════════ */
@@ -1263,6 +1494,9 @@ footer a:hover { color: var(--text2); }
     <button class="sign-out-btn" onclick="doSignOut()">خروج</button>
   </div>
 
+  <!-- User's registered domains (from database) -->
+  <div class="user-domains" id="user-domains" style="display:none"></div>
+
   <!-- Hero -->
   <div class="hero">
     <div class="hero-bg"></div>
@@ -1327,10 +1561,16 @@ footer a:hover { color: var(--text2); }
     <span class="progress-frac" id="prog-frac">0 / 6</span>
   </div>
 
+  <!-- Resume banner -->
+  <div class="resume-banner" id="resume-banner" style="display:none"></div>
+
+  <!-- Quick run (single command) -->
+  <div class="quickrun-card" id="quickrun-card" style="display:none"></div>
+
   <!-- Steps -->
   <div class="steps-wrap" id="steps-wrap"></div>
   <div class="final-screen" id="final-screen">
-    <div class="final-checkmark">
+    <div class="final-checkmark" id="final-checkmark">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
     <h2>OmniRoute جاهز</h2>
@@ -1341,8 +1581,25 @@ footer a:hover { color: var(--text2); }
       <div class="ep-model">استخدم model: <code>auto</code> — OmniRoute يختار الأفضل تلقائيًا</div>
     </div>
     <p>أي أداة متوافقة مع OpenAI تعمل فورًا عبر نفس الـ endpoint.</p>
+
+    <!-- Live server status checker -->
+    <div class="status-check">
+      <button class="status-check-btn" id="status-check-btn" onclick="checkServerStatus()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.93 4.93a10 10 0 0 1 14.14 0M7.76 7.76a6 6 0 0 1 8.48 0M10.6 10.6a2 2 0 0 1 2.8 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        تحقق من حالة السيرفر الآن
+      </button>
+      <div class="server-status" id="server-status"></div>
+      <div class="status-note">لو الموقع شغال على HTTPS ممكن المتصفح يمنع الفحص التلقائي (Mixed Content) — في الحالة دي افتح <a href="http://localhost:20128" target="_blank">localhost:20128</a> في تاب جديد يدويًا للتأكد.</div>
+    </div>
+
     <br>
     <button class="restart-btn" onclick="restartGuide()">إعادة من البداية</button>
+  </div>
+
+  <!-- FAQ / troubleshooting -->
+  <div class="faq-section" id="faq-section">
+    <div class="faq-title">أسئلة شائعة</div>
+    <div class="faq-list" id="faq-list"></div>
   </div>
 
   <!-- Footer -->
@@ -1606,6 +1863,85 @@ function enterApp(user) {
   } else {
     avatar.textContent = name[0].toUpperCase();
   }
+  loadUserData(user);
+  if (typeof animateStats === 'function') animateStats();
+}
+
+/* ── Load profile / progress / update last login (linked to Firestore) ── */
+async function loadUserData(user) {
+  try {
+    const snap = await getDoc(doc(db, 'kjbvv', user.uid));
+    if (snap.exists()) {
+      const data = snap.data();
+
+      // Show the domains the user picked at registration
+      if (data.domains && data.domains.length) {
+        const wrap = document.getElementById('user-domains');
+        wrap.innerHTML = data.domains.map(d => `<span class="user-domain-chip">${d}</span>`).join('');
+        wrap.style.display = 'flex';
+      }
+
+      // Offer to resume a saved setup progress (skip if the guide was already completed)
+      if (data.progress && data.progress.device && data.progress.step > 0 &&
+          (!data.progress.total || data.progress.step < data.progress.total)) {
+        renderResumeBanner(data.progress);
+      }
+    }
+    // Track last login (merge — never overwrites other fields)
+    await setDoc(doc(db, 'kjbvv', user.uid), { lastLogin: new Date().toISOString() }, { merge: true });
+  } catch (e) {
+    console.error('loadUserData failed:', e);
+  }
+}
+
+function renderResumeBanner(progress) {
+  const banner = document.getElementById('resume-banner');
+  const deviceLabel = progress.device === 'phone'
+    ? 'الهاتف (Termux)'
+    : 'اللابتوب (' + (progress.os === 'windows' ? 'Windows' : 'Linux') + ')';
+  banner.style.display = 'flex';
+  banner.innerHTML = `
+    <div class="resume-banner-text">لسه فاضل عندك خطوات على <b>${deviceLabel}</b> — وقفت عند الخطوة ${progress.step}.</div>
+    <div class="resume-banner-actions">
+      <button class="resume-btn" onclick="resumeProgress('${progress.device}', ${progress.os ? "'" + progress.os + "'" : 'null'}, ${progress.step})">استكمل من هنا</button>
+      <button class="resume-btn secondary" onclick="dismissResume()">تجاهل</button>
+    </div>`;
+}
+
+window.dismissResume = function() {
+  document.getElementById('resume-banner').style.display = 'none';
+};
+
+window.resumeProgress = function(device, os, step) {
+  currentDevice = device;
+  currentOS = os;
+  document.getElementById('resume-banner').style.display = 'none';
+  document.querySelectorAll('#device-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.device === device));
+  if (device === 'laptop') {
+    document.getElementById('os-select').style.display = 'block';
+    document.querySelectorAll('#os-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.os === os));
+  }
+  STEPS = device === 'phone' ? STEPS_PHONE : (os === 'windows' ? STEPS_WINDOWS : STEPS_LINUX);
+  currentStep = Math.min(step, STEPS.length);
+  selectedTools = {};
+  document.getElementById('progress-bar-wrap').style.display = 'flex';
+  renderQuickRun();
+  document.getElementById('final-screen').classList.remove('show');
+  renderSteps();
+  document.getElementById('progress-bar-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+/* ── Save setup progress to Firestore (linked to user account) ── */
+window.saveProgress = async function saveProgress(device, os, step) {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await setDoc(doc(db, 'kjbvv', user.uid), {
+      progress: { device, os: os || null, step, total: STEPS ? STEPS.length : null, updatedAt: new Date().toISOString() }
+    }, { merge: true });
+  } catch (e) {
+    console.error('saveProgress failed:', e);
+  }
 }
 
 /* ── Auth state ── */
@@ -1847,9 +2183,78 @@ function startGuide(stepsArr) {
   selectedTools = {};
   document.getElementById('progress-bar-wrap').style.display = 'flex';
   document.getElementById('final-screen').classList.remove('show');
+  renderQuickRun();
   renderSteps();
+  saveProgress(currentDevice, currentOS, 0);
   document.getElementById('progress-bar-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+/* ── Quick run: one combined command per platform ── */
+const QUICKRUN = {
+  phone: {
+    label: 'Termux',
+    cmd: 'pkg update -y && pkg upgrade -y && pkg install -y nodejs curl && npm install -g omniroute && omniroute start',
+    note: 'الأمر ده بيعمل كل خطوات التثبيت والتشغيل مرة واحدة. لازم تفتح Termux وتلزقه بنفسك — المتصفح مينفعش يشغّل أوامر جوه تطبيق تاني لأسباب أمان.'
+  },
+  windows: {
+    label: 'PowerShell',
+    cmd: 'winget install OpenJS.NodeJS.LTS -e --silent; npm install -g omniroute; omniroute start',
+    note: 'محتاج winget (متوفر افتراضيًا في ويندوز 10/11 المحدّثة) — افتح PowerShell كمسؤول (Run as Administrator) والصق الأمر. لو فشل اتبع خطوات التثبيت اليدوي تحت.'
+  },
+  linux: {
+    label: 'Terminal',
+    cmd: 'curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs curl && sudo npm install -g omniroute && omniroute start',
+    note: 'الأمر مبني على Debian/Ubuntu. افتح Terminal والصقه — هيطلب باسورد المستخدم (sudo).'
+  }
+};
+
+function renderQuickRun() {
+  const card = document.getElementById('quickrun-card');
+  const key = currentDevice === 'phone' ? 'phone' : currentOS;
+  if (!key || !QUICKRUN[key]) { card.style.display = 'none'; return; }
+  const q = QUICKRUN[key];
+  const safe = q.cmd.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  card.style.display = 'block';
+  card.innerHTML = `
+    <div class="quickrun-head">
+      <div class="quickrun-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        تشغيل مباشر — أمر واحد بس (${q.label})
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="term-dots"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div></div>
+        <div class="term-title">${q.label}</div>
+      </div>
+      <div class="terminal-body">
+        <span class="term-prompt">$</span>
+        <div class="term-cmd" id="quickrun-cmd">${safe}</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-copy" id="quickrun-copy-btn" onclick="copyQuickRun()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        انسخ الأمر الشامل
+      </button>
+    </div>
+    <div class="quickrun-note">${q.note}</div>
+  `;
+}
+
+window.copyQuickRun = function() {
+  const key = currentDevice === 'phone' ? 'phone' : currentOS;
+  const q = QUICKRUN[key];
+  if (!q) return;
+  const btn = document.getElementById('quickrun-copy-btn');
+  navigator.clipboard.writeText(q.cmd).then(() => {
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> تم النسخ`;
+    btn.classList.add('copied');
+    setTimeout(() => { renderQuickRun(); }, 3000);
+  }).catch(() => {
+    btn.textContent = 'انسخ يدويًا من الأعلى';
+  });
+};
 
 
 let currentStep = 0;
@@ -1868,7 +2273,11 @@ function renderSteps() {
 
   if (currentStep >= STEPS.length) {
     wrap.innerHTML = '';
-    document.getElementById('final-screen').classList.add('show');
+    const finalScreen = document.getElementById('final-screen');
+    const alreadyShown = finalScreen.classList.contains('show');
+    finalScreen.classList.add('show');
+    document.getElementById('server-status').classList.remove('show');
+    if (!alreadyShown) fireConfetti();
     return;
   }
 
@@ -1942,9 +2351,10 @@ function renderSteps() {
 
       html += `<div class="btn-row">`;
       if (!s.noCmd) {
+        const place = currentDevice === 'laptop' ? (currentOS === 'windows' ? 'Command Prompt' : 'Terminal') : 'Termux';
         html += `<button class="btn-copy" id="cp-${i}" onclick="copyCmd(${i})">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          انسخ الأمر والصقه في Termux
+          انسخ الأمر والصقه في ${place}
         </button>`;
       }
       html += `<button class="btn-next" onclick="nextStep()">
@@ -1968,6 +2378,7 @@ function renderSteps() {
 
 function buildTerminal(cmd, id) {
   const safe = cmd.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const title = currentDevice === 'laptop' ? (currentOS === 'windows' ? 'Command Prompt' : 'Terminal') : 'Termux';
   return `<div class="terminal">
     <div class="terminal-bar">
       <div class="term-dots">
@@ -1975,7 +2386,7 @@ function buildTerminal(cmd, id) {
         <div class="term-dot term-dot-y"></div>
         <div class="term-dot term-dot-g"></div>
       </div>
-      <div class="term-title">Termux</div>
+      <div class="term-title">${title}</div>
     </div>
     <div class="terminal-body">
       <span class="term-prompt">$</span>
@@ -2001,12 +2412,13 @@ window.selectTool = function(stepIdx, toolKey) {
 window.copyCmd = function(stepIdx) {
   const cmd = getCurrentCmd(stepIdx);
   if (!cmd) return;
+  const place = currentDevice === 'laptop' ? (currentOS === 'windows' ? 'Command Prompt' : 'Terminal') : 'Termux';
   const btn = document.getElementById('cp-' + stepIdx);
   navigator.clipboard.writeText(cmd).then(() => {
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> تم النسخ — افتح Termux والصق`;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> تم النسخ — افتح ${place} والصق`;
     btn.classList.add('copied');
     setTimeout(() => {
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> انسخ الأمر والصقه في Termux`;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> انسخ الأمر والصقه في ${place}`;
       btn.classList.remove('copied');
     }, 3000);
   }).catch(() => {
@@ -2017,6 +2429,7 @@ window.copyCmd = function(stepIdx) {
 window.nextStep = function() {
   if (currentStep < STEPS.length) currentStep++;
   renderSteps();
+  saveProgress(currentDevice, currentOS, currentStep);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -2025,8 +2438,106 @@ window.restartGuide = function() {
   selectedTools = {};
   document.getElementById('final-screen').classList.remove('show');
   renderSteps();
+  saveProgress(currentDevice, currentOS, 0);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
+
+/* ── Live server status checker ── */
+window.checkServerStatus = async function() {
+  const btn = document.getElementById('status-check-btn');
+  const el = document.getElementById('server-status');
+  btn.disabled = true;
+  el.className = 'server-status show checking';
+  el.innerHTML = '<span class="status-dot"></span> جارِ التحقق...';
+  try {
+    const res = await fetch('http://localhost:20128/v1/models', { method: 'GET', mode: 'cors' });
+    el.className = 'server-status show online';
+    el.innerHTML = '<span class="status-dot"></span> السيرفر شغال ✅ (رد بحالة ' + res.status + ')';
+  } catch (e) {
+    el.className = 'server-status show offline';
+    el.innerHTML = '<span class="status-dot"></span> مش شغال، أو المتصفح منعه — جرّب الرابط اليدوي تحت';
+  }
+  btn.disabled = false;
+};
+
+/* ── Confetti celebration ── */
+function fireConfetti() {
+  const emojis = ['🎉','✨','🚀','⚡','🎊'];
+  for (let i = 0; i < 16; i++) {
+    const span = document.createElement('span');
+    span.className = 'confetti-piece';
+    span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    span.style.left = Math.random() * 100 + 'vw';
+    span.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+    span.style.fontSize = (14 + Math.random() * 12) + 'px';
+    document.body.appendChild(span);
+    setTimeout(() => span.remove(), 4000);
+  }
+}
+
+/* ── Animated hero stats count-up ── */
+function animateStats() {
+  document.querySelectorAll('.stat-num').forEach(el => {
+    const raw = el.textContent.trim();
+    const match = raw.match(/^([\d.]+)(.*)$/);
+    if (!match) return;
+    const target = parseFloat(match[1]);
+    const suffix = match[2];
+    const decimals = match[1].includes('.') ? match[1].split('.')[1].length : 0;
+    const duration = 1000;
+    const start = performance.now();
+    function tick(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (target * eased).toFixed(decimals) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+/* ── FAQ accordion ── */
+const FAQ_ITEMS = [
+  {
+    q: 'السيرفر بيقفل لما أقفل التطبيق أو التبويب — إزاي أخليه شغال في الخلفية؟',
+    a: 'على الهاتف: شغّل الأمر بـ <code>omniroute start &</code> عشان يفضل شغال حتى لو قفلت الـ tab (لكن لازم Termux نفسه يفضل مفتوح في الخلفية، وميتقفلش من إعدادات توفير البطارية). على ويندوز ولينكس: سيب نافذة الطرفية مفتوحة طول ما بتستخدم الأداة.'
+  },
+  {
+    q: 'ظهرت رسالة "port already in use" أو "EADDRINUSE" — أعمل إيه؟',
+    a: 'ده معناه إن فيه نسخة تانية من السيرفر شغالة فعلًا على نفس البورت (20128). أوقف النسخة القديمة الأول (اقفل نافذة الطرفية بتاعتها أو اعمل Ctrl+C) وبعدين شغّل <code>omniroute start</code> تاني.'
+  },
+  {
+    q: 'إزاي أوقف السيرفر؟',
+    a: 'ارجع لنافذة الطرفية اللي شغّلت فيها <code>omniroute start</code> واضغط <code>Ctrl+C</code>. لو شغّلته في الخلفية بـ <code>&</code>، استخدم <code>pkill -f omniroute</code>.'
+  },
+  {
+    q: 'الأداة (Cursor / Claude Code / إلخ) مش بتتصل بالسيرفر ليه؟',
+    a: 'تأكد إن السيرفر لسه شغال (استخدم زرار "تحقق من حالة السيرفر" فوق)، وإن الأداة مضبوطة على نفس الـ endpoint: <code>http://localhost:20128/v1</code>. لو الأداة على جهاز تاني في نفس الشبكة، استبدل <code>localhost</code> بعنوان IP جهازك.'
+  },
+  {
+    q: 'أقدر أستخدم أكتر من جهاز بنفس الحساب؟',
+    a: 'أيوة، تقدر تسجل دخول بنفس الحساب من الهاتف واللابتوب مع بعض. كل جهاز بيشغّل نسخته الخاصة من السيرفر محليًا — التقدم اللي بتحفظه ليك بيتزامن حسب آخر جهاز اشتغلت عليه.'
+  }
+];
+
+function renderFaq() {
+  const list = document.getElementById('faq-list');
+  list.innerHTML = FAQ_ITEMS.map((item, i) => `
+    <div class="faq-item" id="faq-${i}">
+      <div class="faq-q" onclick="toggleFaq(${i})">
+        <span>${item.q}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <div class="faq-a">${item.a}</div>
+    </div>
+  `).join('');
+}
+
+window.toggleFaq = function(i) {
+  document.getElementById('faq-' + i).classList.toggle('open');
+};
+
+renderFaq();
 </script>
 
 </body>
