@@ -81,6 +81,71 @@ body {
 #main-app { display: none; }
 #main-app.visible { display: block; }
 
+/* Logo copy protection */
+.logo-protected {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
+}
+
+/* Profile / account modal */
+.profile-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 420px;
+  margin: auto 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.profile-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.profile-card-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.profile-close {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.profile-close:hover { color: var(--text); }
+
+.profile-meta {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.9;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
 /* ════════════════════════════════════════
    AUTH PAGE
 ════════════════════════════════════════ */
@@ -214,7 +279,7 @@ body {
   font-weight: 500;
 }
 
-.field input, .field select {
+.field input, .field select, .field textarea {
   width: 100%;
   padding: 10px 12px;
   background: var(--bg2);
@@ -229,7 +294,9 @@ body {
   -webkit-appearance: none;
 }
 
-.field input:focus, .field select:focus {
+.field textarea { resize: vertical; line-height: 1.6; }
+
+.field input:focus, .field select:focus, .field textarea:focus {
   border-color: var(--highlight-border);
 }
 
@@ -246,6 +313,103 @@ body {
 .field-error.show { display: block; }
 
 .field select option { background: var(--surface); }
+
+/* Profile modal extras */
+.profile-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 18px 0;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 6px;
+  font-size: 24px;
+}
+
+.rating-star {
+  cursor: pointer;
+  color: var(--border3);
+  transition: color 0.15s, transform 0.1s;
+}
+
+.rating-star:hover { transform: scale(1.15); }
+.rating-star.filled { color: var(--highlight); }
+
+.usage-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+
+.usage-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.usage-stats-val { color: var(--highlight); font-weight: 600; }
+
+.referral-row {
+  display: flex;
+  gap: 8px;
+}
+
+.referral-code {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--highlight);
+  font-family: monospace;
+  font-size: 13px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+}
+
+.referral-row .btn-copy { width: auto; padding: 0 16px; }
+
+.danger-zone {
+  border: 1px solid rgba(248,113,113,0.3);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  background: rgba(248,113,113,0.04);
+}
+
+.danger-zone-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--red);
+  margin-bottom: 6px;
+}
+
+.danger-zone-desc {
+  font-size: 11.5px;
+  color: var(--text3);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.danger-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--red-border);
+  border-radius: var(--radius);
+  color: var(--red);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.danger-btn:hover { background: rgba(248,113,113,0.1); }
+.danger-btn:disabled { opacity: 0.6; cursor: default; }
 
 /* domain chips */
 .domain-grid {
@@ -1322,7 +1486,7 @@ footer a:hover { color: var(--text2); }
   <div class="auth-wrap">
 
     <div class="auth-logo">
-      <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" onerror="this.style.display='none'">
+      <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" class="logo-protected" draggable="false" oncontextmenu="return false" onerror="this.style.display='none'">
       <div class="auth-logo-text">OmniRoute</div>
       <div class="auth-logo-sub">بوابة Claude على Termux</div>
     </div>
@@ -1485,7 +1649,7 @@ footer a:hover { color: var(--text2); }
 
   <!-- User bar -->
   <div class="user-bar">
-    <div class="user-info">
+    <div class="user-info" onclick="openProfile()" style="cursor:pointer" title="حسابي">
       <div class="user-avatar" id="user-avatar">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </div>
@@ -1502,7 +1666,7 @@ footer a:hover { color: var(--text2); }
     <div class="hero-bg"></div>
     <div class="hero-grid-lines"></div>
     <div class="hero-logo">
-      <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" onerror="this.style.display='none'">
+      <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" class="logo-protected" draggable="false" oncontextmenu="return false" onerror="this.style.display='none'">
       <span class="hero-logo-label">OmniRoute</span>
     </div>
     <h1>Claude مجانًا<br><span>على أي جهاز</span></h1>
@@ -1610,14 +1774,133 @@ footer a:hover { color: var(--text2); }
 
 </div>
 
+<!-- Profile / account modal -->
+<div id="profile-overlay" class="profile-overlay" style="display:none">
+  <div class="profile-card">
+    <div class="profile-card-head">
+      <div class="profile-card-title">حسابي</div>
+      <button class="profile-close" onclick="closeProfile()" aria-label="إغلاق">✕</button>
+    </div>
+
+    <div class="profile-meta" id="profile-meta"></div>
+
+    <div class="field">
+      <label>الاسم الكامل</label>
+      <input type="text" id="pf-name" placeholder="اسمك الكامل">
+    </div>
+    <div class="field">
+      <label>اسم المستخدم</label>
+      <input type="text" id="pf-username" placeholder="اسم المستخدم">
+    </div>
+    <div class="field">
+      <label>رقم الهاتف</label>
+      <input type="tel" id="pf-phone" placeholder="رقم الهاتف">
+    </div>
+    <div class="field">
+      <label>مجال الاستفادة</label>
+      <div class="domain-grid" id="pf-domain-grid">
+        <div class="domain-chip" data-val="AI" onclick="toggleDomain(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Artificial Intelligence
+        </div>
+        <div class="domain-chip" data-val="Cybersecurity" onclick="toggleDomain(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Cybersecurity
+        </div>
+        <div class="domain-chip" data-val="Mechatronics" onclick="toggleDomain(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Mechatronics
+        </div>
+        <div class="domain-chip" data-val="Data Analysis" onclick="toggleDomain(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Data Analysis
+        </div>
+        <div class="domain-chip" data-val="Software Engineering" onclick="toggleDomain(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Software Engineering
+        </div>
+        <div class="domain-chip" data-val="Electrical Engineering" onclick="toggleDomain(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Electrical Engineering
+        </div>
+        <div class="domain-chip" data-val="Mechanical Engineering" onclick="toggleDomain(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
+          Mechanical Engineering
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-msg" id="profile-msg"></div>
+    <button class="auth-submit" id="profile-save-btn" onclick="saveProfile()" style="margin:0">
+      <span id="profile-save-label">حفظ التعديلات</span>
+      <span class="spinner dark" id="profile-save-spin"></span>
+    </button>
+
+    <!-- Notes -->
+    <div class="profile-divider"></div>
+    <div class="field">
+      <label>ملاحظاتي الشخصية</label>
+      <textarea id="pf-notes" rows="3" placeholder="أي ملاحظات تخصك عن إعدادك — بتتحفظ مع باقي بياناتك"></textarea>
+    </div>
+
+    <!-- Rate experience -->
+    <div class="profile-divider"></div>
+    <div class="field">
+      <label>قيّم تجربتك مع OmniRoute</label>
+      <div class="rating-stars" id="rating-stars"></div>
+    </div>
+
+    <!-- Change email -->
+    <div class="profile-divider"></div>
+    <div class="field">
+      <label>تغيير البريد الإلكتروني</label>
+      <input type="email" id="pf-new-email" placeholder="البريد الإلكتروني الجديد">
+      <button class="restart-btn" id="change-email-btn" onclick="changeEmail()" style="margin-top:8px;width:100%">
+        إرسال رابط تأكيد التغيير
+      </button>
+      <div class="auth-msg" id="email-change-msg"></div>
+      <div class="quickrun-note">هيتبعت رابط تأكيد على البريد الجديد — بعد ما تضغط عليه من جواه، بريدك الحالي يتغيّر تلقائيًا. لو ظهر خطأ "يحتاج تسجيل دخول حديث"، سجّل خروج ثم دخول تاني وحاول من جديد.</div>
+    </div>
+
+    <!-- Usage stats (read-only) -->
+    <div class="profile-divider"></div>
+    <div class="usage-stats" id="usage-stats"></div>
+
+    <!-- Referral code -->
+    <div class="profile-divider"></div>
+    <div class="field">
+      <label>كود الدعوة الخاص بك</label>
+      <div class="referral-row">
+        <div class="referral-code" id="referral-code">—</div>
+        <button class="btn-copy" id="referral-copy-btn" onclick="copyReferral()">نسخ</button>
+      </div>
+    </div>
+
+    <!-- Danger zone -->
+    <div class="profile-divider"></div>
+    <div class="danger-zone">
+      <div class="danger-zone-title">منطقة خطر</div>
+      <div id="danger-zone-locked" style="display:none">
+        <div class="danger-zone-desc">حذف الحساب ذاتيًا متاح لمستخدمي <b style="color:var(--highlight)">Pro</b> فقط. لو محتاج تحذف حسابك، تواصل مع الدعم الفني: <a href="mailto:support@404error.qd.je" style="color:var(--highlight)">support@404error.qd.je</a></div>
+      </div>
+      <div id="danger-zone-active" style="display:none">
+        <div class="danger-zone-desc">حذف حسابك هيمسح بياناتك من قاعدة البيانات وحساب الدخول نهائيًا — الإجراء ده مينفعش يترجع.</div>
+        <button class="danger-btn" id="delete-account-btn" onclick="deleteAccount()">حذف الحساب نهائيًا</button>
+      </div>
+      <div class="auth-msg" id="delete-account-msg"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase SDKs -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          GoogleAuthProvider, signInWithPopup, sendEmailVerification,
-         sendPasswordResetEmail, onAuthStateChanged, signOut }
+         sendPasswordResetEmail, onAuthStateChanged, signOut,
+         verifyBeforeUpdateEmail, deleteUser }
   from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc }
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, increment, arrayUnion }
   from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1873,6 +2156,7 @@ async function loadUserData(user) {
     const snap = await getDoc(doc(db, 'kjbvv', user.uid));
     if (snap.exists()) {
       const data = snap.data();
+      window.userProfile = data;
 
       // Show the domains the user picked at registration
       if (data.domains && data.domains.length) {
@@ -1888,11 +2172,223 @@ async function loadUserData(user) {
       }
     }
     // Track last login (merge — never overwrites other fields)
-    await setDoc(doc(db, 'kjbvv', user.uid), { lastLogin: new Date().toISOString() }, { merge: true });
+    await setDoc(doc(db, 'kjbvv', user.uid), { lastLogin: new Date().toISOString(), email: user.email }, { merge: true });
   } catch (e) {
     console.error('loadUserData failed:', e);
   }
+
 }
+
+/* ── Profile / account modal ── */
+window.openProfile = async function() {
+  const user = auth.currentUser;
+  if (!user) return;
+  document.getElementById('profile-overlay').style.display = 'flex';
+  document.getElementById('profile-msg').textContent = '';
+  document.getElementById('profile-msg').className = 'auth-msg';
+  document.getElementById('email-change-msg').textContent = '';
+  document.getElementById('email-change-msg').className = 'auth-msg';
+  document.getElementById('delete-account-msg').textContent = '';
+  document.getElementById('delete-account-msg').className = 'auth-msg';
+  document.getElementById('pf-new-email').value = '';
+
+  // Fetch fresh so usage stats / rating are always current
+  let data = window.userProfile || {};
+  try {
+    const snap = await getDoc(doc(db, 'kjbvv', user.uid));
+    if (snap.exists()) { data = snap.data(); window.userProfile = data; }
+  } catch (e) { console.error('openProfile fetch failed:', e); }
+
+  document.getElementById('pf-name').value = data.name || user.displayName || '';
+  document.getElementById('pf-username').value = data.username || '';
+  document.getElementById('pf-phone').value = data.phone || '';
+  document.getElementById('pf-notes').value = data.notes || '';
+  document.querySelectorAll('#pf-domain-grid .domain-chip').forEach(c => {
+    c.classList.toggle('selected', (data.domains || []).includes(c.dataset.val));
+  });
+
+  const created = data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-EG') : '—';
+  const last = data.lastLogin ? new Date(data.lastLogin).toLocaleString('ar-EG') : '—';
+  const isPro = !!data.isPro;
+  const tierBadge = isPro
+    ? '<span style="color:var(--highlight);font-weight:600">Pro ✨</span>'
+    : '<span style="color:var(--text3)">عادي</span>';
+  document.getElementById('profile-meta').innerHTML =
+    `<div>البريد الإلكتروني: ${user.email}</div><div>عضو منذ: ${created}</div><div>آخر دخول: ${last}</div><div>نوع الحساب: ${tierBadge}</div>`;
+
+  document.getElementById('danger-zone-active').style.display = isPro ? 'block' : 'none';
+  document.getElementById('danger-zone-locked').style.display = isPro ? 'none' : 'block';
+
+  renderRatingStars(data.rating || 0);
+
+  const completions = data.setupCompletions || 0;
+  const devices = (data.devicesUsed && data.devicesUsed.length) ? data.devicesUsed.join('، ') : 'لسه معملتش إعداد كامل';
+  document.getElementById('usage-stats').innerHTML = `
+    <div class="usage-stats-row"><span>مرات الإعداد المكتملة</span><span class="usage-stats-val">${completions}</span></div>
+    <div class="usage-stats-row"><span>الأجهزة المستخدمة</span><span class="usage-stats-val" style="text-align:left">${devices}</span></div>
+  `;
+
+  let code = data.referralCode;
+  if (!code) {
+    code = 'OMNI-' + user.uid.slice(0, 6).toUpperCase();
+    setDoc(doc(db, 'kjbvv', user.uid), { referralCode: code }, { merge: true }).catch(e => console.error('save referral code failed:', e));
+    window.userProfile = Object.assign({}, window.userProfile, { referralCode: code });
+  }
+  document.getElementById('referral-code').textContent = code;
+};
+
+window.closeProfile = function() {
+  document.getElementById('profile-overlay').style.display = 'none';
+};
+
+window.saveProfile = async function() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const name = document.getElementById('pf-name').value.trim();
+  const username = document.getElementById('pf-username').value.trim();
+  const phone = document.getElementById('pf-phone').value.trim();
+  const notes = document.getElementById('pf-notes').value.trim();
+  const domains = Array.from(document.querySelectorAll('#pf-domain-grid .domain-chip.selected')).map(e => e.dataset.val);
+
+  setLoading('profile-save-btn', 'profile-save-spin', 'profile-save-label', true);
+  try {
+    await setDoc(doc(db, 'kjbvv', user.uid), { name, username, phone, domains, notes }, { merge: true });
+    window.userProfile = Object.assign({}, window.userProfile, { name, username, phone, domains, notes });
+
+    // Reflect changes immediately in the header
+    document.getElementById('user-name-bar').textContent = 'أهلًا، ' + (name || user.email.split('@')[0]);
+    const wrap = document.getElementById('user-domains');
+    if (domains.length) {
+      wrap.innerHTML = domains.map(d => `<span class="user-domain-chip">${d}</span>`).join('');
+      wrap.style.display = 'flex';
+    } else {
+      wrap.style.display = 'none';
+    }
+
+    showMsg('profile-msg', 'تم حفظ التعديلات بنجاح.', 'success');
+  } catch (e) {
+    console.error('saveProfile failed:', e);
+    showMsg('profile-msg', 'تعذّر الحفظ: ' + (e.message || e.code), 'error');
+  }
+  setLoading('profile-save-btn', 'profile-save-spin', 'profile-save-label', false);
+};
+
+/* ── Feature 1: star rating (auto-saves) ── */
+function renderRatingStars(current) {
+  const wrap = document.getElementById('rating-stars');
+  wrap.innerHTML = '';
+  for (let n = 1; n <= 5; n++) {
+    const s = document.createElement('span');
+    s.className = 'rating-star' + (n <= current ? ' filled' : '');
+    s.textContent = '★';
+    s.onclick = () => setRating(n);
+    wrap.appendChild(s);
+  }
+}
+
+window.setRating = async function(n) {
+  renderRatingStars(n);
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await setDoc(doc(db, 'kjbvv', user.uid), { rating: n }, { merge: true });
+    window.userProfile = Object.assign({}, window.userProfile, { rating: n });
+  } catch (e) {
+    console.error('setRating failed:', e);
+  }
+};
+
+/* ── Feature 2: referral code copy ── */
+window.copyReferral = function() {
+  const code = document.getElementById('referral-code').textContent;
+  const btn = document.getElementById('referral-copy-btn');
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'تم النسخ';
+    setTimeout(() => { btn.textContent = 'نسخ'; }, 2000);
+  }).catch(() => { btn.textContent = 'انسخ يدويًا'; });
+};
+
+/* ── Feature 3: usage stats (setup completions + linked devices) — populated in openProfile,
+     incremented from trackCompletion() below ── */
+window.trackCompletion = async function(device, os) {
+  const user = auth.currentUser;
+  if (!user) return;
+  const label = device === 'phone' ? 'الهاتف (Termux)' : ('اللابتوب (' + (os === 'windows' ? 'Windows' : 'Linux') + ')');
+  try {
+    await setDoc(doc(db, 'kjbvv', user.uid), {
+      setupCompletions: increment(1),
+      devicesUsed: arrayUnion(label)
+    }, { merge: true });
+  } catch (e) {
+    console.error('trackCompletion failed:', e);
+  }
+};
+
+/* ── Feature 4: change email (Firebase sends a verification link to the new address) ── */
+window.changeEmail = async function() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const newEmail = document.getElementById('pf-new-email').value.trim();
+  if (!newEmail) {
+    showMsg('email-change-msg', 'أدخل البريد الإلكتروني الجديد.', 'error');
+    return;
+  }
+  const btn = document.getElementById('change-email-btn');
+  btn.disabled = true;
+  try {
+    await verifyBeforeUpdateEmail(user, newEmail);
+    showMsg('email-change-msg', 'تم إرسال رابط تأكيد إلى ' + newEmail + ' — افتحه لإتمام تغيير بريدك. بريدك الحالي هيفضل شغال لحد ما تأكد.', 'success');
+    document.getElementById('pf-new-email').value = '';
+  } catch (e) {
+    console.error('changeEmail failed:', e);
+    const msgs = {
+      'auth/requires-recent-login': 'الإجراء ده محتاج تسجيل دخول حديث — سجّل خروج ثم دخول تاني وحاول من جديد.',
+      'auth/email-already-in-use': 'البريد ده مستخدم بالفعل في حساب تاني.',
+      'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة.'
+    };
+    showMsg('email-change-msg', msgs[e.code] || ('تعذّر الإرسال: ' + (e.message || e.code)), 'error');
+  }
+  btn.disabled = false;
+};
+
+/* ── Feature 5: personal notes — saved via saveProfile() above ── */
+
+/* ── Feature 6: delete account ── */
+window.deleteAccount = async function() {
+  const user = auth.currentUser;
+  if (!user) return;
+  if (!(window.userProfile && window.userProfile.isPro)) {
+    showMsg('delete-account-msg', 'حذف الحساب ذاتيًا متاح لمستخدمي Pro فقط.', 'error');
+    return;
+  }
+  if (!confirm('متأكد إنك عايز تحذف حسابك نهائيًا؟ هيتمسح كل بياناتك من قاعدة البيانات وحساب الدخول، والإجراء ده مش هينفع يترجع.')) return;
+  const btn = document.getElementById('delete-account-btn');
+  btn.disabled = true;
+  try {
+    await deleteDoc(doc(db, 'kjbvv', user.uid));
+    await deleteUser(user);
+    window.location.reload();
+  } catch (e) {
+    console.error('deleteAccount failed:', e);
+    const msgs = {
+      'auth/requires-recent-login': 'الإجراء ده محتاج تسجيل دخول حديث — سجّل خروج ثم دخول تاني وحاول من جديد.'
+    };
+    showMsg('delete-account-msg', msgs[e.code] || ('تعذّر الحذف: ' + (e.message || e.code)), 'error');
+    btn.disabled = false;
+  }
+};
+
+/* ── Remember the user's preferred tool across sessions ── */
+window.savePreferredTool = async function(tool) {
+  const user = auth.currentUser;
+  if (!user || tool === '_test') return;
+  try {
+    await setDoc(doc(db, 'kjbvv', user.uid), { preferredTool: tool }, { merge: true });
+    window.userProfile = Object.assign({}, window.userProfile, { preferredTool: tool });
+  } catch (e) {
+    console.error('savePreferredTool failed:', e);
+  }
+};
 
 function renderResumeBanner(progress) {
   const banner = document.getElementById('resume-banner');
@@ -2277,7 +2773,10 @@ function renderSteps() {
     const alreadyShown = finalScreen.classList.contains('show');
     finalScreen.classList.add('show');
     document.getElementById('server-status').classList.remove('show');
-    if (!alreadyShown) fireConfetti();
+    if (!alreadyShown) {
+      fireConfetti();
+      if (typeof trackCompletion === 'function') trackCompletion(currentDevice, currentOS);
+    }
     return;
   }
 
@@ -2323,7 +2822,7 @@ function renderSteps() {
 
       // Tool selector for last step
       if (s.cmds) {
-        const activeTool = selectedTools[i] || s.defaultTool;
+        const activeTool = selectedTools[i] || (window.userProfile && window.userProfile.preferredTool) || s.defaultTool;
         const toolOpts = Object.assign({ '_test': 'اختبار الاتصال فقط (curl)' }, TOOLS);
         html += `<div class="tool-selector-label">اختر الأداة التي تريد ربطها:</div>
           <div class="tool-selector">`;
@@ -2407,6 +2906,7 @@ function getCurrentCmd(stepIdx) {
 window.selectTool = function(stepIdx, toolKey) {
   selectedTools[stepIdx] = toolKey;
   renderSteps();
+  if (typeof savePreferredTool === 'function') savePreferredTool(toolKey);
 };
 
 window.copyCmd = function(stepIdx) {
