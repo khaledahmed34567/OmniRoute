@@ -3,3141 +3,458 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OmniRoute — إعداد Claude على Termux</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Khaled Ahmed</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #000000;
-  --bg2: #0a0a0a;
-  --bg3: #111111;
-  --surface: #161616;
-  --surface2: #1e1e1e;
-  --surface3: #242424;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
-  --border3: rgba(255,255,255,0.2);
-  --text: #f4f4f4;
-  --text2: #a8a8a8;
-  --text3: #666666;
-  --white: #ffffff;
-  --accent: #e8e8e8;
-  --accent2: #c0c0c0;
-  --highlight: #7c5cff;
-  --highlight-soft: rgba(124,92,255,0.12);
-  --highlight-border: rgba(124,92,255,0.45);
-  --green: #42be65;
-  --green-bg: rgba(66,190,101,0.08);
-  --green-border: rgba(66,190,101,0.2);
-  --amber: #f1c21b;
-  --amber-bg: rgba(241,194,27,0.08);
-  --amber-border: rgba(241,194,27,0.2);
-  --red: #fa4d56;
-  --red-bg: rgba(250,77,86,0.08);
-  --red-border: rgba(250,77,86,0.2);
-  --blue: #78a9ff;
-  --blue-bg: rgba(120,169,255,0.08);
-  --blue-border: rgba(120,169,255,0.2);
-  --radius: 10px;
-  --radius-lg: 16px;
-  --mono: 'IBM Plex Mono', monospace;
-  --sans: 'IBM Plex Sans Arabic', system-ui, sans-serif;
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ════════════════════════════════════════
-   PAGE SECTIONS
-════════════════════════════════════════ */
-
-/* Auth overlay */
-#auth-overlay {
-  position: fixed; inset: 0;
-  background: var(--bg);
-  z-index: 1000;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 20px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-#auth-overlay .auth-wrap {
-  margin: auto 0;
-}
-
-#main-app { display: none; }
-#main-app.visible { display: block; }
-
-/* Logo copy protection */
-.logo-protected {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-user-drag: none;
-  -webkit-touch-callout: none;
-  pointer-events: none;
-}
-
-/* Profile / account modal */
-.profile-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 1100;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 20px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.profile-card {
-  width: 100%;
-  max-width: 420px;
-  margin: auto 0;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-}
-
-.profile-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.profile-card-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--white);
-}
-
-.profile-close {
-  background: none;
-  border: none;
-  color: var(--text3);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px 8px;
-}
-
-.profile-close:hover { color: var(--text); }
-
-.profile-meta {
-  font-size: 12px;
-  color: var(--text3);
-  line-height: 1.9;
-  margin-bottom: 18px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--border);
-}
-
-/* ════════════════════════════════════════
-   AUTH PAGE
-════════════════════════════════════════ */
-.auth-wrap {
-  width: 100%;
-  max-width: 420px;
-}
-
-.auth-logo {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.auth-logo img {
-  height: 52px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-}
-
-.auth-logo-text {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--white);
-  letter-spacing: -0.3px;
-  margin-top: 10px;
-}
-
-.auth-logo-sub {
-  font-size: 13px;
-  color: var(--text3);
-  margin-top: 4px;
-}
-
-.auth-card {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-}
-
-.auth-tabs {
-  display: flex;
-  background: var(--bg2);
-  border-radius: 8px;
-  padding: 3px;
-  margin-bottom: 24px;
-  border: 1px solid var(--border);
-}
-
-.auth-tab {
-  flex: 1;
-  padding: 8px;
-  border: none;
-  background: transparent;
-  color: var(--text3);
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.auth-tab.active {
-  background: var(--highlight-soft);
-  color: var(--highlight);
-}
-
-/* Google button */
-.google-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 11px 16px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  margin-bottom: 20px;
-}
-
-.google-btn:hover {
-  background: var(--surface3);
-  border-color: var(--border3);
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  color: var(--text3);
-  font-size: 12px;
-}
-
-.divider::before, .divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-/* Form inputs */
-.form-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.field label {
-  font-size: 12px;
-  color: var(--text2);
-  font-weight: 500;
-}
-
-.field input, .field select, .field textarea {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--bg2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.field textarea { resize: vertical; line-height: 1.6; }
-
-.field input:focus, .field select:focus, .field textarea:focus {
-  border-color: var(--highlight-border);
-}
-
-.field input.error, .field select.error {
-  border-color: var(--red-border);
-}
-
-.field-error {
-  font-size: 11px;
-  color: var(--red);
-  display: none;
-}
-
-.field-error.show { display: block; }
-
-.field select option { background: var(--surface); }
-
-/* Profile modal extras */
-.profile-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 18px 0;
-}
-
-.rating-stars {
-  display: flex;
-  gap: 6px;
-  font-size: 24px;
-}
-
-.rating-star {
-  cursor: pointer;
-  color: var(--border3);
-  transition: color 0.15s, transform 0.1s;
-}
-
-.rating-star:hover { transform: scale(1.15); }
-.rating-star.filled { color: var(--highlight); }
-
-.usage-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 12.5px;
-  color: var(--text2);
-}
-
-.usage-stats-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.usage-stats-val { color: var(--highlight); font-weight: 600; }
-
-.referral-row {
-  display: flex;
-  gap: 8px;
-}
-
-.referral-code {
-  flex: 1;
-  padding: 10px 12px;
-  background: var(--bg2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--highlight);
-  font-family: monospace;
-  font-size: 13px;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-}
-
-.referral-row .btn-copy { width: auto; padding: 0 16px; }
-
-.danger-zone {
-  border: 1px solid rgba(248,113,113,0.3);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  background: rgba(248,113,113,0.04);
-}
-
-.danger-zone-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--red);
-  margin-bottom: 6px;
-}
-
-.danger-zone-desc {
-  font-size: 11.5px;
-  color: var(--text3);
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
-
-.danger-btn {
-  width: 100%;
-  padding: 10px;
-  background: transparent;
-  border: 1px solid var(--red-border);
-  border-radius: var(--radius);
-  color: var(--red);
-  font-family: var(--sans);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.danger-btn:hover { background: rgba(248,113,113,0.1); }
-.danger-btn:disabled { opacity: 0.6; cursor: default; }
-
-/* domain chips */
-.domain-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.domain-chip {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 10px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--text2);
-  cursor: pointer;
-  transition: all 0.15s;
-  user-select: none;
-}
-
-.domain-chip:hover { border-color: var(--border3); color: var(--text); }
-
-.domain-chip.selected {
-  background: var(--highlight-soft);
-  border-color: var(--highlight-border);
-  color: var(--highlight);
-}
-
-.domain-chip svg { flex-shrink: 0; }
-
-.auth-submit {
-  width: 100%;
-  padding: 12px;
-  margin-top: 4px;
-  background: var(--highlight);
-  border: none;
-  border-radius: var(--radius);
-  color: #fff;
-  font-family: var(--sans);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.auth-submit:hover { opacity: 0.88; }
-.auth-submit:disabled { opacity: 0.4; cursor: default; }
-
-.auth-msg {
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  font-size: 12px;
-  text-align: center;
-  display: none;
-}
-
-.auth-msg.success {
-  display: block;
-  background: var(--green-bg);
-  border: 1px solid var(--green-border);
-  color: var(--green);
-}
-
-.auth-msg.error {
-  display: block;
-  background: var(--red-bg);
-  border: 1px solid var(--red-border);
-  color: var(--red);
-}
-
-.auth-msg.info {
-  display: block;
-  background: var(--blue-bg);
-  border: 1px solid var(--blue-border);
-  color: var(--blue);
-}
-
-.auth-footer {
-  text-align: center;
-  margin-top: 20px;
-  font-size: 12px;
-  color: var(--text3);
-}
-
-.auth-footer a { color: var(--text2); text-decoration: none; }
-.auth-footer a:hover { color: var(--white); }
-
-/* Verification pending screen */
-#verify-screen {
-  text-align: center;
-  padding: 20px 0;
-  display: none;
-}
-
-#verify-screen.show { display: block; }
-
-.verify-icon {
-  width: 64px; height: 64px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
-}
-
-/* ════════════════════════════════════════
-   MAIN APP — HERO
-════════════════════════════════════════ */
-
-.hero {
-  position: relative;
-  overflow: hidden;
-  padding: 56px 24px 48px;
-  text-align: center;
-  background: linear-gradient(180deg, #000 0%, #0a0a0a 100%);
-  border-bottom: 1px solid var(--border);
-}
-
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,255,255,0.04) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.hero-grid-lines {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
-  pointer-events: none;
-}
-
-.hero-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.hero-logo img {
-  height: 44px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-}
-
-.hero-logo-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--white);
-  letter-spacing: 0.5px;
-}
-
-.hero h1 {
-  font-size: clamp(24px, 6vw, 36px);
-  font-weight: 600;
-  color: var(--white);
-  letter-spacing: -0.5px;
-  line-height: 1.2;
-  margin-bottom: 14px;
-}
-
-.hero h1 span {
-  color: var(--text3);
-}
-
-.hero-desc {
-  font-size: 14px;
-  color: var(--text2);
-  max-width: 380px;
-  margin: 0 auto 32px;
-  line-height: 1.7;
-  font-weight: 300;
-}
-
-.hero-stats {
-  display: flex;
-  justify-content: center;
-  gap: 0;
-  max-width: 360px;
-  margin: 0 auto;
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.stat-item {
-  flex: 1;
-  padding: 14px 12px;
-  border-left: 1px solid var(--border2);
-}
-
-.stat-item:first-child { border-left: none; }
-
-.stat-num {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--white);
-  font-family: var(--mono);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 4px;
-  font-weight: 400;
-}
-
-/* Platform / OS selection */
-.platform-select {
-  max-width: 460px;
-  margin: 0 auto;
-  padding: 28px 20px 8px;
-  text-align: center;
-}
-
-.platform-select-title {
-  font-size: 13px;
-  color: var(--text2);
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-
-.os-select { margin-top: 22px; }
-
-.platform-chips {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.platform-chip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 18px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-  color: var(--text2);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  user-select: none;
-}
-
-.platform-chip:hover { border-color: var(--border3); color: var(--text); }
-
-.platform-chip.selected {
-  background: var(--highlight-soft);
-  border-color: var(--highlight-border);
-  color: var(--highlight);
-}
-
-.platform-chip-sub {
-  font-size: 11px;
-  color: var(--text3);
-  font-weight: 400;
-}
-
-.platform-chip.selected .platform-chip-sub { color: var(--highlight); opacity: 0.75; }
-
-/* Quick run card */
-.quickrun-card {
-  max-width: 640px;
-  margin: 0 auto 20px;
-  padding: 16px;
-  background: var(--surface);
-  border: 1px solid var(--highlight-border);
-  border-radius: var(--radius-lg);
-}
-
-.quickrun-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.quickrun-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--highlight);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.quickrun-note {
-  font-size: 11.5px;
-  color: var(--text3);
-  margin-top: 8px;
-  line-height: 1.6;
-}
-
-.quickrun-toggle {
-  background: none;
-  border: none;
-  color: var(--text3);
-  font-size: 12px;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-/* Resume banner */
-.resume-banner {
-  max-width: 640px;
-  margin: 0 auto 16px;
-  padding: 14px 16px;
-  background: var(--highlight-soft);
-  border: 1px solid var(--highlight-border);
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.resume-banner-text { font-size: 13px; color: var(--text); }
-.resume-banner-text b { color: var(--highlight); }
-
-.resume-banner-actions { display: flex; gap: 8px; }
-
-.resume-btn {
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid var(--highlight-border);
-  background: var(--highlight);
-  color: #fff;
-}
-
-.resume-btn.secondary {
-  background: transparent;
-  color: var(--text2);
-  border-color: var(--border2);
-}
-
-/* User domains chips */
-.user-domains {
-  max-width: 640px;
-  margin: 0 auto 4px;
-  padding: 0 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-}
-
-.user-domain-chip {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  color: var(--text3);
-}
-
-/* User bar */
-.user-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.user-avatar {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--surface3);
-  border: 1px solid var(--border2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  overflow: hidden;
-}
-
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-.user-name { font-size: 13px; color: var(--text2); }
-
-.sign-out-btn {
-  padding: 5px 12px;
-  background: transparent;
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  color: var(--text3);
-  font-family: var(--sans);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.sign-out-btn:hover { border-color: var(--border3); color: var(--text); }
-
-/* ════════════════════════════════════════
-   PROGRESS
-════════════════════════════════════════ */
-.progress-bar-wrap {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(0,0,0,0.9);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.progress-label { font-size: 12px; color: var(--text3); white-space: nowrap; }
-
-.progress-track {
-  flex: 1;
-  height: 2px;
-  background: var(--surface3);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--highlight);
-  border-radius: 2px;
-  transition: width 0.5s cubic-bezier(.4,0,.2,1);
-}
-
-.progress-frac {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--text3);
-  white-space: nowrap;
-}
-
-/* ════════════════════════════════════════
-   STEPS
-════════════════════════════════════════ */
-.steps-wrap {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 24px 16px 48px;
-}
-
-.step-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  margin-bottom: 10px;
-  overflow: hidden;
-  transition: border-color 0.25s;
-}
-
-.step-card.is-active { border-color: var(--highlight-border); }
-
-.step-card.is-done {
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-.step-head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px 20px;
-}
-
-.step-num {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  border: 1px solid var(--border2);
-  background: var(--surface2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text3);
-  flex-shrink: 0;
-  transition: all 0.25s;
-}
-
-.step-card.is-active .step-num {
-  background: var(--highlight);
-  border-color: var(--highlight);
-  color: #fff;
-}
-
-.step-card.is-done .step-num {
-  background: var(--green-bg);
-  border-color: var(--green-border);
-  color: var(--green);
-}
-
-.step-meta { flex: 1; }
-
-.step-eyebrow {
-  font-size: 11px;
-  color: var(--text3);
-  margin-bottom: 2px;
-  font-weight: 400;
-}
-
-.step-card.is-active .step-eyebrow { color: var(--text2); }
-
-.step-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text2);
-  transition: color 0.2s;
-}
-
-.step-card.is-active .step-title { color: var(--white); }
-
-.step-badge {
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 20px;
-  background: var(--surface3);
-  color: var(--text3);
-  border: 1px solid var(--border);
-  font-weight: 400;
-}
-
-.step-card.is-active .step-badge {
-  background: var(--green-bg);
-  border-color: var(--green-border);
-  color: var(--green);
-}
-
-/* Step body */
-.step-body { padding: 0 20px 20px; }
-
-.step-desc {
-  font-size: 13px;
-  color: var(--text2);
-  line-height: 1.7;
-  margin-bottom: 16px;
-  padding-right: 44px;
-  font-weight: 300;
-}
-
-/* Download link */
-.dl-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  text-decoration: none;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 14px;
-  transition: all 0.15s;
-}
-
-.dl-link:hover {
-  border-color: var(--border3);
-  background: var(--surface3);
-}
-
-.dl-link-icon {
-  width: 36px; height: 36px;
-  background: var(--surface3);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.dl-link-meta { flex: 1; }
-.dl-link-name { font-size: 13px; font-weight: 500; }
-.dl-link-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-
-/* Tool selector */
-.tool-selector-label {
-  font-size: 12px;
-  color: var(--text3);
-  margin-bottom: 8px;
-}
-
-.tool-selector {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.tool-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 11px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--text2);
-  cursor: pointer;
-  transition: all 0.15s;
-  user-select: none;
-}
-
-.tool-chip:hover { border-color: var(--border2); color: var(--text); }
-
-.tool-chip.selected {
-  background: rgba(255,255,255,0.04);
-  border-color: var(--border3);
-  color: var(--white);
-}
-
-.tool-chip-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  border: 1px solid var(--border2);
-  flex-shrink: 0;
-  transition: all 0.15s;
-}
-
-.tool-chip.selected .tool-chip-dot {
-  background: var(--green);
-  border-color: var(--green);
-}
-
-/* Terminal block */
-.terminal {
-  background: #000;
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-
-.terminal-bar {
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-  padding: 7px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.term-dots { display: flex; gap: 5px; }
-.term-dot { width: 8px; height: 8px; border-radius: 50%; }
-.term-dot-r { background: #ff5f57; }
-.term-dot-y { background: #ffbd2e; }
-.term-dot-g { background: #28c840; }
-
-.term-title {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text3);
-  flex: 1;
-  text-align: center;
-}
-
-.terminal-body {
-  padding: 14px 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  min-height: 52px;
-}
-
-.term-prompt {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--green);
-  flex-shrink: 0;
-  padding-top: 1px;
-}
-
-.term-cmd {
-  font-family: var(--mono);
-  font-size: 12.5px;
-  color: #c9d1d9;
-  word-break: break-all;
-  direction: ltr;
-  text-align: left;
-  line-height: 1.6;
-  flex: 1;
-}
-
-.term-cmd .kw { color: #ff79c6; }
-.term-cmd .str { color: #a5d6ff; }
-.term-cmd .flag { color: #f8f8f2; opacity: 0.6; }
-
-/* Copy + next buttons */
-.btn-row { display: flex; flex-direction: column; gap: 8px; }
-
-.btn-copy {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text2);
-  font-family: var(--sans);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-copy:hover { background: var(--surface3); border-color: var(--border3); color: var(--text); }
-
-.btn-copy.copied {
-  background: var(--green-bg);
-  border-color: var(--green-border);
-  color: var(--green);
-}
-
-.btn-next {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  background: var(--white);
-  border: none;
-  border-radius: var(--radius);
-  color: #000;
-  font-family: var(--sans);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-}
-
-.btn-next:hover { opacity: 0.88; }
-.btn-next:active { transform: scale(0.99); }
-
-/* Note box */
-.note-box {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: var(--amber-bg);
-  border: 1px solid var(--amber-border);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  font-size: 12px;
-  color: #d4a050;
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
-
-.note-box svg { flex-shrink: 0; margin-top: 1px; }
-
-/* Done badge inside card */
-.done-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--green);
-  padding: 0 20px 16px 20px;
-  padding-right: 64px;
-}
-
-/* ════════════════════════════════════════
-   FINAL SCREEN
-════════════════════════════════════════ */
-.final-screen {
-  display: none;
-  text-align: center;
-  padding: 48px 24px;
-}
-
-.final-screen.show { display: block; }
-
-.final-checkmark {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background: var(--green-bg);
-  border: 1px solid var(--green-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-}
-
-.final-screen h2 {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--white);
-  margin-bottom: 10px;
-}
-
-.final-screen p {
-  font-size: 14px;
-  color: var(--text2);
-  max-width: 360px;
-  margin: 0 auto 28px;
-  line-height: 1.7;
-  font-weight: 300;
-}
-
-.endpoint-box {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  padding: 16px 20px;
-  max-width: 380px;
-  margin: 0 auto 20px;
-  text-align: left;
-  direction: ltr;
-}
-
-.ep-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
-
-.ep-url {
-  font-family: var(--mono);
-  font-size: 15px;
-  color: var(--green);
-  margin-bottom: 8px;
-}
-
-.ep-model {
-  font-size: 12px;
-  color: var(--text3);
-}
-
-.ep-model code {
-  font-family: var(--mono);
-  color: var(--amber);
-}
-
-.restart-btn {
-  padding: 10px 24px;
-  background: transparent;
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text3);
-  font-family: var(--sans);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.restart-btn:hover { border-color: var(--border3); color: var(--text); }
-
-/* Live server status checker */
-.status-check {
-  max-width: 360px;
-  margin: 20px auto 0;
-  padding: 14px;
-  background: var(--bg);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-}
-
-.status-check-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text2);
-  font-family: var(--sans);
-  font-size: 12.5px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.status-check-btn:hover { border-color: var(--highlight-border); color: var(--text); }
-.status-check-btn:disabled { opacity: 0.6; cursor: default; }
-
-.server-status {
-  display: none;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.server-status.show { display: flex; }
-.server-status.checking { background: rgba(255,255,255,0.04); color: var(--text2); }
-.server-status.online { background: rgba(74,222,128,0.1); color: var(--green); }
-.server-status.offline { background: rgba(248,113,113,0.1); color: var(--red); }
-
-.status-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-  flex-shrink: 0;
-}
-
-.server-status.checking .status-dot { animation: statusPulse 1s ease-in-out infinite; }
-@keyframes statusPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-.status-note {
-  margin-top: 10px;
-  font-size: 11px;
-  color: var(--text3);
-  line-height: 1.6;
-}
-.status-note a { color: var(--highlight); }
-
-/* Confetti */
-.confetti-piece {
-  position: fixed;
-  top: -10px;
-  font-size: 18px;
-  pointer-events: none;
-  z-index: 2000;
-  animation: confettiFall linear forwards;
-}
-@keyframes confettiFall {
-  to { transform: translateY(100vh) rotate(360deg); opacity: 0.2; }
-}
-
-/* FAQ */
-.faq-section {
-  max-width: 640px;
-  margin: 8px auto 24px;
-  padding: 0 20px;
-}
-
-.faq-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--white);
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.faq-item {
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  margin-bottom: 8px;
-  overflow: hidden;
-  background: var(--surface);
-}
-
-.faq-q {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 13px 14px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  user-select: none;
-}
-
-.faq-q svg { flex-shrink: 0; transition: transform 0.2s; color: var(--text3); }
-.faq-item.open .faq-q svg { transform: rotate(45deg); color: var(--highlight); }
-
-.faq-a {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.25s ease, padding 0.25s ease;
-  font-size: 12.5px;
-  color: var(--text2);
-  line-height: 1.7;
-  padding: 0 14px;
-}
-
-.faq-item.open .faq-a {
-  max-height: 300px;
-  padding: 0 14px 14px;
-}
-
-/* ════════════════════════════════════════
-   FOOTER
-════════════════════════════════════════ */
-footer {
-  border-top: 1px solid var(--border);
-  padding: 20px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--text3);
-  line-height: 1.6;
-}
-
-footer a { color: var(--text3); text-decoration: none; }
-footer a:hover { color: var(--text2); }
-
-/* ════════════════════════════════════════
-   LOADING SPINNER
-════════════════════════════════════════ */
-.spinner {
-  width: 18px; height: 18px;
-  border: 2px solid rgba(0,0,0,0.2);
-  border-top-color: #000;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  display: none;
-}
-
-.spinner.dark {
-  border-color: rgba(255,255,255,0.1);
-  border-top-color: var(--white);
-}
-
-.spinner.show { display: inline-block; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
-
-/* Text selection highlight */
-::selection {
-  background: var(--highlight);
-  color: #fff;
-}
-
-/* Mobile */
-@media (max-width: 420px) {
-  .form-row { grid-template-columns: 1fr; }
-  .tool-selector { grid-template-columns: 1fr; }
-  .step-desc { padding-right: 0; }
-}
+:root{--bg:#000;--s:#111;--s2:#1a1a1a;--b:rgba(255,255,255,.1);--t:#f4f4f4;--t2:#a8a8a8;--t3:#666;--a:#7c5cff;--g:#42be65}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.bgfx{position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 20% 10%,rgba(124,92,255,.22),transparent 45%),radial-gradient(circle at 85% 80%,rgba(66,190,101,.12),transparent 40%);background-size:140% 140%;animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{to{background-position:100% 100%}}
+header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.brand img{height:34px;filter:brightness(0) invert(1);pointer-events:none;-webkit-user-drag:none;user-select:none}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{padding:7px 12px;border-radius:8px;font-size:13px;color:var(--t2);transition:.2s}
+nav a:hover,nav a.on{background:rgba(124,92,255,.15);color:#fff}
+.in{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--b);padding:7px 12px;border-radius:8px;font-size:13px}
+.in:hover{border-color:var(--a)}
+.ticker{overflow:hidden;border-bottom:1px solid var(--b);background:var(--s);direction:ltr;white-space:nowrap}
+.ticker-in{display:inline-block;padding:9px 0;animation:mq 40s linear infinite}
+.ticker:hover .ticker-in{animation-play-state:paused}
+.ticker-in span{display:inline-block;padding:0 34px;font-size:13px;color:var(--t2);direction:rtl}
+.ticker-in span:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--a);margin-left:10px;animation:pulse 1.4s infinite}
+@keyframes mq{to{transform:translateX(-50%)}}
+@keyframes pulse{50%{opacity:.25;transform:scale(.6)}}
+main{max-width:980px;margin:0 auto;padding:26px 16px 60px;animation:fadeup .5s both}
+@keyframes fadeup{from{opacity:0;transform:translateY(18px)}}
+.hero{text-align:center;padding:56px 10px 40px}
+.hero h1{font-size:clamp(34px,9vw,64px);font-weight:700;line-height:1.1;background:linear-gradient(90deg,#fff,#7c5cff,#fff);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s linear infinite}
+@keyframes shine{to{background-position:200%}}
+.hero p{color:var(--t2);max-width:520px;margin:16px auto 26px;line-height:1.8;font-weight:300}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{padding:12px 22px;border-radius:10px;border:1px solid var(--b);background:var(--s2);color:var(--t);font:500 14px inherit;font-family:inherit;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-3px);border-color:var(--a);box-shadow:0 8px 24px rgba(124,92,255,.25)}
+.btn.p{background:var(--a);border-color:var(--a);color:#fff}
+h2.sec{font-size:19px;margin:34px 0 14px;display:flex;justify-content:space-between;align-items:center}
+h2.sec a{font-size:12px;color:var(--a);font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.card{background:var(--s);border:1px solid var(--b);border-radius:14px;overflow:hidden;transition:.3s;display:block}
+.card:hover{transform:translateY(-6px);border-color:var(--a);box-shadow:0 14px 34px rgba(124,92,255,.2)}
+.card img{width:100%;height:150px;object-fit:cover;display:block;transition:.5s}
+.card:hover img{transform:scale(1.06)}
+.cimg{overflow:hidden}
+.cb{padding:14px}
+.tag{font-size:11px;color:var(--a);margin-bottom:6px}
+.card h3{font-size:15px;margin-bottom:6px;line-height:1.5}
+.card p{font-size:12.5px;color:var(--t2);line-height:1.7}
+.date{font-size:11px;color:var(--t3);margin-top:8px}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .6s,transform .6s}
+.rv.show{opacity:1;transform:none}
+.art h1{font-size:28px;line-height:1.4;margin-bottom:10px}
+.art .cover{width:100%;max-height:380px;object-fit:cover;border-radius:14px;margin:14px 0}
+.art .body p{line-height:2;margin-bottom:12px;color:#ddd}
+.art .body img{max-width:100%;border-radius:12px;margin:10px 0}
+.share{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+.empty{color:var(--t3);padding:30px;text-align:center;border:1px dashed var(--b);border-radius:12px}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0 18px}
+.chip{padding:12px;border:1px solid var(--b);border-radius:10px;text-align:center;font-size:13px;color:var(--t2);cursor:pointer;background:var(--s);transition:.2s}
+.chip.on{background:rgba(124,92,255,.18);border-color:var(--a);color:#fff}
+.step{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:16px;margin-bottom:12px}
+.step h3{font-size:15px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.step h3 i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--a);display:inline-flex;align-items:center;justify-content:center;font:500 12px 'IBM Plex Mono'}
+.step p{font-size:13px;color:var(--t2);line-height:1.9;margin-bottom:10px}
+.cmd{direction:ltr;text-align:left;background:#000;border:1px solid var(--b);border-radius:10px;padding:12px;font:12.5px/1.6 'IBM Plex Mono',monospace;color:#c9d1d9;word-break:break-all;display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.cmd button{background:var(--s2);border:1px solid var(--b);color:var(--t2);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px;flex-shrink:0}
+.note{font-size:12px;color:#d4a050;background:rgba(241,194,27,.08);border:1px solid rgba(241,194,27,.2);border-radius:10px;padding:9px 12px;margin-top:10px;line-height:1.7}
+footer{border-top:1px solid var(--b);padding:20px;text-align:center;font-size:12px;color:var(--t3)}
+
+:root{--bg:#000;--s:#161616;--s2:#1e1e1e;--s3:#242424;--b:rgba(255,255,255,.12);--a:#7c5cff}
+body{background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(255,255,255,.06),transparent 70%),#000}
+.bgfx{background:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 30%,#000 25%,transparent 80%);mask-image:radial-gradient(ellipse 80% 70% at 50% 30%,#000 25%,transparent 80%);animation:gridmove 20s linear infinite}
+@keyframes gridmove{to{background-position:48px 48px}}
+header{background:rgba(10,10,10,.45);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%)}
+.brand img{height:58px}
+.card,.step,.chip,.cmd,.acard,.pf{background:rgba(255,255,255,.045);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border:1px solid rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 10px 30px rgba(0,0,0,.35)}
+.chip.on{background:rgba(124,92,255,.22)}
+.btn{background:rgba(255,255,255,.07);backdrop-filter:blur(10px)}
+.btn.p{background:rgba(124,92,255,.85)}
+.herologo{height:clamp(110px,30vw,190px);filter:brightness(0) invert(1);animation:flt 4s ease-in-out infinite;pointer-events:none;-webkit-user-drag:none;user-select:none}
+@keyframes flt{50%{transform:translateY(-10px)}}
+.menu{background:rgba(255,255,255,.07);border:1px solid var(--b);color:#fff;border-radius:10px;width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s}
+.menu:hover{border-color:var(--a);transform:scale(1.06)}
+.drawer{position:fixed;top:0;right:0;height:100%;width:270px;transform:translateX(105%);transition:transform .45s cubic-bezier(.2,.8,.2,1);z-index:60;flex-direction:column;flex-wrap:nowrap;gap:6px;padding:76px 14px 20px;background:rgba(14,14,14,.55);backdrop-filter:blur(24px) saturate(170%);-webkit-backdrop-filter:blur(24px) saturate(170%);border-left:1px solid var(--b)}
+.drawer.open{transform:none}
+.drawer a,.drawer button{padding:13px 14px;font-size:14px;text-align:right;border-radius:10px;border:0;background:transparent;color:var(--t2);font-family:inherit;cursor:pointer}
+.drawer a:hover,.drawer a.on,.drawer button:hover{background:rgba(124,92,255,.18);color:#fff}
+.scrim{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);display:none}
+.scrim.open{display:block;animation:fadeup .3s both}
+#auth{position:fixed;inset:0;z-index:100;background:#000;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.acard{width:100%;max-width:430px;margin:auto 0;border-radius:18px;padding:24px;animation:fadeup .6s both}
+.alogo{display:block;margin:0 auto 18px;height:96px;filter:brightness(0) invert(1);pointer-events:none;user-select:none;-webkit-user-drag:none}
+.tabs{display:flex;background:rgba(0,0,0,.4);border:1px solid var(--b);border-radius:10px;padding:3px;margin-bottom:16px}
+.tabs button{flex:1;padding:9px;border:0;background:transparent;color:var(--t3);font-family:inherit;font-size:13px;border-radius:8px;cursor:pointer;transition:.2s}
+.tabs button.on{background:rgba(124,92,255,.2);color:var(--a)}
+.gbtn{width:100%;padding:11px;border-radius:10px;border:1px solid var(--b);background:rgba(255,255,255,.07);color:#fff;font-family:inherit;font-size:14px;cursor:pointer;margin-bottom:14px;transition:.2s}
+.gbtn:hover{border-color:var(--a)}
+.or{text-align:center;font-size:12px;color:var(--t3);margin-bottom:12px}
+.acard input,.pf input,.pf textarea{width:100%;padding:10px 12px;margin-bottom:10px;background:rgba(0,0,0,.45);border:1px solid var(--b);border-radius:10px;color:#fff;font-family:inherit;font-size:13px;outline:none;transition:.2s}
+.acard input:focus,.pf input:focus,.pf textarea:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(124,92,255,.18)}
+.acard label,.pf label{display:block;font-size:12px;color:var(--t2);margin:2px 0 5px}
+.two2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.dc{padding:9px;border:1px solid var(--b);border-radius:8px;font-size:11.5px;color:var(--t2);cursor:pointer;text-align:center;transition:.2s;user-select:none}
+.dc.on{background:rgba(124,92,255,.2);border-color:var(--a);color:#fff}
+.amsg{margin-top:10px;padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.7;display:none}
+.amsg.ok{display:block;background:rgba(66,190,101,.1);color:#42be65}.amsg.er{display:block;background:rgba(250,77,86,.1);color:#fa4d56}.amsg.in{display:block;background:rgba(120,169,255,.1);color:#78a9ff}
+.pf{border-radius:18px;padding:22px;max-width:520px;margin:0 auto}
+.av{width:84px;height:84px;border-radius:50%;margin:0 auto 12px;background:rgba(124,92,255,.25);border:1px solid var(--a);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;overflow:hidden;animation:flt 5s ease-in-out infinite}
+.av img{width:100%;height:100%;object-fit:cover}
+.pm{text-align:center;color:var(--t2);font-size:12px;line-height:2;margin-bottom:16px}
+@media(max-width:420px){.two2{grid-template-columns:1fr}}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+
+::selection{background:#7c5cff;color:#fff}::-moz-selection{background:#7c5cff;color:#fff}
+h1,h2,h3,.tabs button,.btn,.chip,.drawer a,.drawer button,.dc,.gbtn,.vis,.fwt{font-family:'Kufam','IBM Plex Sans Arabic',sans-serif}
+.lg{background:url(https://i.ibb.co/TJ2T61B/logo.png) center/contain no-repeat;filter:brightness(0) invert(1);pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.brand .lg{height:58px;width:140px}.alogo.lg{width:210px}.herologo.lg{width:clamp(210px,62vw,380px);margin:0 auto 6px}
+.lnk{color:#a99bff;text-decoration:underline;word-break:break-all}
+.fgt{display:block;text-align:center;margin-top:12px;padding:10px;border:1px dashed var(--b);border-radius:10px;font-size:13px;color:#a99bff}
+#cmp{position:fixed;inset:0;z-index:120;background:#000;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.vis{margin-top:22px;font-size:14px;color:var(--t2)}.vis b{color:#fff;font-size:22px;margin:0 6px;font-family:'IBM Plex Mono',monospace}
+footer .fl{margin-bottom:12px}footer>div{margin-bottom:6px}footer b{color:#fff}
+#fw{position:fixed;left:14px;bottom:14px;z-index:70;width:290px;max-width:calc(100% - 28px);padding:16px;border-radius:16px;background:rgba(20,20,20,.5);backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);border:1px solid rgba(255,255,255,.15);box-shadow:0 14px 40px rgba(0,0,0,.5);transform:translateY(160%);transition:transform .6s cubic-bezier(.2,.9,.2,1)}
+#fw.show{transform:none}#fw p{font-size:13px;color:var(--t2);line-height:1.8;margin:6px 0 12px}
+#fw .x{position:absolute;top:8px;left:10px;background:none;border:0;color:var(--t3);cursor:pointer;font-size:16px}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Kufam:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+<div id="auth"><div class="acard">
+<div class="lg alogo"></div>
+<div class="tabs"><button id="tl" class="on" onclick="switchTab('login')">تسجيل الدخول</button><button id="tr" onclick="switchTab('register')">إنشاء حساب</button></div>
+<button class="gbtn" onclick="signInGoogle()">متابعة مع Google</button>
+<div class="or">أو بالبريد الإلكتروني</div>
+<div id="fl"><label>البريد الإلكتروني</label><input type="email" id="le" dir="ltr"><label>كلمة المرور</label><input type="password" id="lp" dir="ltr">
+<a href="#" class="fgt" onclick="forgot();return false">نسيت كلمة المرور؟ اضغط هنا</a>
+<div class="row" style="margin-top:12px"><button class="btn p" style="width:100%" onclick="doLogin()">دخول</button></div></div>
+<div id="fr" style="display:none"><div class="two2"><div><label>الاسم الكامل</label><input id="rn"></div><div><label>اسم المستخدم</label><input id="ru" dir="ltr"></div></div>
+<label>البريد الإلكتروني</label><input type="email" id="re" dir="ltr"><label>رقم الهاتف</label><input type="tel" id="rph" dir="ltr">
+<div class="two2"><div><label>كلمة المرور</label><input type="password" id="rp" dir="ltr"></div><div><label>تأكيد كلمة المرور</label><input type="password" id="rp2" dir="ltr"></div></div>
+<label>مجال الاستفادة</label><div class="dg" id="dgrid"></div>
+<button class="btn p" style="width:100%" onclick="doRegister()">إنشاء الحساب</button></div>
+<div class="amsg" id="amsg"></div>
+<button class="btn" id="resend" style="display:none;width:100%;margin-top:10px" onclick="resendV()">إعادة إرسال رابط التفعيل</button>
+</div></div>
+<div class="scrim" id="scrim" onclick="toggleMenu()"></div>
+<div id="cmp"><div class="acard"><div class="lg alogo"></div><h3 style="text-align:center;margin-bottom:6px">أكمل بياناتك للمتابعة</h3><p style="text-align:center;font-size:12.5px;color:var(--t2);margin-bottom:14px;line-height:1.8">هذه البيانات مطلوبة قبل دخول المنصة.</p>
+<label>الاسم الكامل</label><input id="cn"><label>اسم المستخدم</label><input id="cu" dir="ltr"><label>رقم الهاتف</label><input id="cph" type="tel" dir="ltr">
+<label>مجال الاستفادة</label><div class="dg" id="cdg"></div><div class="amsg" id="cmsg"></div>
+<button class="btn p" style="width:100%" onclick="saveComplete()">حفظ والمتابعة</button></div></div>
+<div id="fw"><button class="x" onclick="closeFw()" aria-label="إغلاق">x</button><div class="fwt" style="font-size:15px;font-weight:600">تابعني على LinkedIn</div><p>تابع جديد المقالات والمشاريع والأخبار على حسابي في LinkedIn.</p><a class="btn p" style="display:block;text-align:center" href="https://www.linkedin.com/in/khaled-ahmed-241002386" target="_blank" rel="noopener" onclick="closeFw()">متابعة الآن</a></div>
+<div class="bgfx"></div>
+<header>
+  <a class="brand" href="#/"><div class="lg"></div></a>
+  <button class="menu" onclick="toggleMenu()" aria-label="القائمة"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
+  <nav id="nav" class="drawer" onclick="if(event.target.tagName==='A')toggleMenu()">
+    <a href="#/" data-r="home">الرئيسية</a>
+    <a href="#/blog" data-r="blog">المدونة</a>
+    <a href="#/projects" data-r="projects">المشاريع</a>
+    <a href="#/news" data-r="news">الأخبار</a>
+    <a href="#/setup" data-r="setup">ضبط الذكاء الاصطناعي</a>
+    <a href="#/profile" data-r="profile">الملف الشخصي</a>
+    <button onclick="doSignOut()">تسجيل الخروج</button>
+  </nav>
+  <a class="in" href="https://www.linkedin.com/in/khaled-ahmed-241002386" target="_blank" rel="noopener"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4z"/></svg>LinkedIn</a>
+</header>
+<div class="ticker" id="ticker" style="display:none"><div class="ticker-in" id="ticker-in"></div></div>
+<main id="view"></main>
+<footer><div class="fl"><a class="in" href="https://www.linkedin.com/in/khaled-ahmed-241002386" target="_blank" rel="noopener"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4z"/></svg>تابعني على LinkedIn</a></div><div>عدد الزوار: <b class="vcn">0</b></div><div>جميع الحقوق محفوظة</div></footer>
 
-<!-- ══════════════════════════════════════
-     AUTH OVERLAY
-══════════════════════════════════════ -->
-<div id="auth-overlay">
-  <div class="auth-wrap">
-
-    <div class="auth-logo">
-      <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" class="logo-protected" draggable="false" oncontextmenu="return false" onerror="this.style.display='none'">
-      <div class="auth-logo-text">OmniRoute</div>
-      <div class="auth-logo-sub">بوابة Claude على Termux</div>
-    </div>
-
-    <div class="auth-card">
-
-      <!-- Tabs -->
-      <div class="auth-tabs">
-        <button class="auth-tab active" onclick="switchTab('login')">تسجيل الدخول</button>
-        <button class="auth-tab" onclick="switchTab('register')">إنشاء حساب</button>
-      </div>
-
-      <!-- Google -->
-      <button class="google-btn" onclick="signInGoogle()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        متابعة مع Google
-      </button>
-
-      <div class="divider">أو بالبريد الإلكتروني</div>
-
-      <!-- ── LOGIN FORM ── -->
-      <div id="login-form">
-        <div class="form-grid">
-          <div class="field">
-            <label>البريد الإلكتروني</label>
-            <input type="email" id="login-email" placeholder="you@example.com" dir="ltr">
-            <span class="field-error" id="login-email-err"></span>
-          </div>
-          <div class="field">
-            <label>كلمة المرور</label>
-            <input type="password" id="login-pass" placeholder="••••••••" dir="ltr">
-            <span class="field-error" id="login-pass-err"></span>
-          </div>
-          <div style="text-align:left">
-            <a href="#" onclick="forgotPass()" style="font-size:12px;color:var(--text3);text-decoration:none">نسيت كلمة المرور؟</a>
-          </div>
-          <button class="auth-submit" id="login-btn" onclick="doLogin()">
-            <span id="login-label">دخول</span>
-            <span class="spinner dark" id="login-spin"></span>
-          </button>
-        </div>
-        <div class="auth-msg" id="login-msg"></div>
-      </div>
-
-      <!-- ── REGISTER FORM ── -->
-      <div id="register-form" style="display:none">
-        <div id="reg-step-1">
-          <div class="form-grid">
-            <div class="form-row">
-              <div class="field">
-                <label>الاسم الكامل</label>
-                <input type="text" id="reg-name" placeholder="خالد أحمد">
-                <span class="field-error" id="reg-name-err"></span>
-              </div>
-              <div class="field">
-                <label>اسم المستخدم</label>
-                <input type="text" id="reg-username" placeholder="khaled99" dir="ltr">
-                <span class="field-error" id="reg-username-err"></span>
-              </div>
-            </div>
-            <div class="field">
-              <label>البريد الإلكتروني</label>
-              <input type="email" id="reg-email" placeholder="you@example.com" dir="ltr">
-              <span class="field-error" id="reg-email-err"></span>
-            </div>
-            <div class="field">
-              <label>رقم الهاتف</label>
-              <input type="tel" id="reg-phone" placeholder="+966 5X XXX XXXX" dir="ltr">
-              <span class="field-error" id="reg-phone-err"></span>
-            </div>
-            <div class="form-row">
-              <div class="field">
-                <label>كلمة المرور</label>
-                <input type="password" id="reg-pass" placeholder="••••••••" dir="ltr">
-                <span class="field-error" id="reg-pass-err"></span>
-              </div>
-              <div class="field">
-                <label>تأكيد كلمة المرور</label>
-                <input type="password" id="reg-pass2" placeholder="••••••••" dir="ltr">
-                <span class="field-error" id="reg-pass2-err"></span>
-              </div>
-            </div>
-            <div class="field">
-              <label>مجال الاستفادة</label>
-              <div class="domain-grid" id="domain-grid">
-                <div class="domain-chip" data-val="AI" onclick="toggleDomain(this)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                  Artificial Intelligence
-                </div>
-                <div class="domain-chip" data-val="Cybersecurity" onclick="toggleDomain(this)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  Cybersecurity
-                </div>
-                <div class="domain-chip" data-val="Mechatronics" onclick="toggleDomain(this)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-                  Mechatronics
-                </div>
-                <div class="domain-chip" data-val="Data Analysis" onclick="toggleDomain(this)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                  Data Analysis
-                </div>
-                <div class="domain-chip" data-val="Software Engineering" onclick="toggleDomain(this)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                  Software Engineering
-                </div>
-                <div class="domain-chip" data-val="Electrical Engineering" onclick="toggleDomain(this)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                  Electrical Engineering
-                </div>
-                <div class="domain-chip" data-val="Mechanical Engineering" onclick="toggleDomain(this)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
-                  Mechanical Engineering
-                </div>
-              </div>
-              <span class="field-error" id="reg-domain-err"></span>
-            </div>
-            <button class="auth-submit" id="reg-btn" onclick="doRegister()">
-              <span id="reg-label">إنشاء الحساب</span>
-              <span class="spinner dark" id="reg-spin"></span>
-            </button>
-          </div>
-          <div class="auth-msg" id="reg-msg"></div>
-        </div>
-
-        <!-- Verify pending -->
-        <div id="verify-screen">
-          <div class="verify-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          </div>
-          <div style="font-size:17px;font-weight:600;color:var(--white);margin-bottom:8px">تحقق من بريدك</div>
-          <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px">
-            أرسلنا رابط تحقق إلى بريدك الإلكتروني.<br>افتحه ثم عد هنا لتسجيل الدخول.<br>
-            <span style="color:var(--text3);font-size:12px">لو مالقيتوش، افحص مجلد الرسائل غير المرغوب فيها (Spam / Junk).</span>
-          </div>
-          <button class="auth-submit" onclick="switchTab('login')" style="margin:0">الذهاب لتسجيل الدخول</button>
-          <button class="restart-btn" onclick="resendVerification()" style="margin-top:10px;width:100%" id="resend-verify-btn">
-            إعادة إرسال رابط التفعيل
-          </button>
-          <div class="auth-msg" id="verify-msg"></div>
-        </div>
-      </div>
-
-      <div class="auth-footer" id="auth-footer-link">
-        للدعم الفني: <a href="mailto:support@404error.qd.je">support@404error.qd.je</a>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     MAIN APP
-══════════════════════════════════════ -->
-<div id="main-app">
-
-  <!-- User bar -->
-  <div class="user-bar">
-    <div class="user-info" onclick="openProfile()" style="cursor:pointer" title="حسابي">
-      <div class="user-avatar" id="user-avatar">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
-      <span class="user-name" id="user-name-bar">مرحبًا</span>
-    </div>
-    <button class="sign-out-btn" onclick="doSignOut()">خروج</button>
-  </div>
-
-  <!-- User's registered domains (from database) -->
-  <div class="user-domains" id="user-domains" style="display:none"></div>
-
-  <!-- Hero -->
-  <div class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-grid-lines"></div>
-    <div class="hero-logo">
-      <img src="https://i.ibb.co/TJ2T61B/logo.png" alt="OmniRoute" class="logo-protected" draggable="false" oncontextmenu="return false" onerror="this.style.display='none'">
-      <span class="hero-logo-label">OmniRoute</span>
-    </div>
-    <h1>Claude مجانًا<br><span>على أي جهاز</span></h1>
-    <p class="hero-desc">بوابة AI موحدة تتصل بأكثر من 350 مزودًا — اضبط كل شيء بخطوات واضحة على جهازك</p>
-    <div class="hero-stats">
-      <div class="stat-item">
-        <div class="stat-num">350+</div>
-        <div class="stat-label">مزود AI</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">150+</div>
-        <div class="stat-label">مجاني</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">1.47B</div>
-        <div class="stat-label">token / شهر</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Platform selection -->
-  <div class="platform-select" id="platform-select">
-    <div class="platform-select-title">هتشغّل OmniRoute من إيه؟</div>
-    <div class="platform-chips" id="device-chips">
-      <div class="platform-chip" data-device="phone" onclick="choosePlatform('phone')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-        الهاتف <span class="platform-chip-sub">Android أو iPhone</span>
-      </div>
-      <div class="platform-chip" data-device="laptop" onclick="choosePlatform('laptop')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="13" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-        اللابتوب / الكمبيوتر
-      </div>
-    </div>
-
-    <div class="os-select" id="phone-os-select" style="display:none">
-      <div class="platform-select-title">نوع الهاتف؟</div>
-      <div class="platform-chips" id="phone-os-chips">
-        <div class="platform-chip" data-os="android" onclick="choosePhoneOS('android')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 16V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8"/><path d="M8 3l1.5 2M16 3l-1.5 2"/><rect x="5" y="8" width="14" height="12" rx="2"/><line x1="9" y1="21" x2="9" y2="20"/><line x1="15" y1="21" x2="15" y2="20"/></svg>
-          Android <span class="platform-chip-sub">Termux</span>
-        </div>
-        <div class="platform-chip" data-os="ios" onclick="choosePhoneOS('ios')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/><path d="M14.5 4.5c.5-1 1.8-1.8 3-1.5-.1 1.2-.9 2.2-1.9 2.8-1 .6-1.9.4-2.6-.2"/></svg>
-          iPhone <span class="platform-chip-sub">iSH</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="os-select" id="os-select" style="display:none">
-      <div class="platform-select-title">نظام التشغيل؟</div>
-      <div class="platform-chips" id="os-chips">
-        <div class="platform-chip" data-os="windows" onclick="chooseOS('windows')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>
-          Windows
-        </div>
-        <div class="platform-chip" data-os="linux" onclick="chooseOS('linux')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M8 15c1 1 2 1.5 4 1.5s3-.5 4-1.5"/></svg>
-          Linux
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Progress bar -->
-  <div class="progress-bar-wrap" id="progress-bar-wrap" style="display:none">
-    <span class="progress-label">التقدم</span>
-    <div class="progress-track">
-      <div class="progress-fill" id="prog-fill" style="width:0%"></div>
-    </div>
-    <span class="progress-frac" id="prog-frac">0 / 6</span>
-  </div>
-
-  <!-- Resume banner -->
-  <div class="resume-banner" id="resume-banner" style="display:none"></div>
-
-  <!-- Quick run (single command) -->
-  <div class="quickrun-card" id="quickrun-card" style="display:none"></div>
-
-  <!-- Steps -->
-  <div class="steps-wrap" id="steps-wrap"></div>
-  <div class="final-screen" id="final-screen">
-    <div class="final-checkmark" id="final-checkmark">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-    </div>
-    <h2>OmniRoute جاهز</h2>
-    <p>السيرفر شغال على جهازك ومتصل بـ Claude وأكثر من 350 مزود AI — كلهم عبر endpoint واحد.</p>
-    <div class="endpoint-box">
-      <div class="ep-label">الـ Endpoint</div>
-      <div class="ep-url">http://localhost:20128/v1</div>
-      <div class="ep-model">استخدم model: <code>auto</code> — OmniRoute يختار الأفضل تلقائيًا</div>
-    </div>
-    <p>أي أداة متوافقة مع OpenAI تعمل فورًا عبر نفس الـ endpoint.</p>
-
-    <!-- Live server status checker -->
-    <div class="status-check">
-      <button class="status-check-btn" id="status-check-btn" onclick="checkServerStatus()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.93 4.93a10 10 0 0 1 14.14 0M7.76 7.76a6 6 0 0 1 8.48 0M10.6 10.6a2 2 0 0 1 2.8 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-        تحقق من حالة السيرفر الآن
-      </button>
-      <div class="server-status" id="server-status"></div>
-      <div class="status-note">لو الموقع شغال على HTTPS ممكن المتصفح يمنع الفحص التلقائي (Mixed Content) — في الحالة دي افتح <a href="http://localhost:20128" target="_blank">localhost:20128</a> في تاب جديد يدويًا للتأكد.</div>
-    </div>
-
-    <br>
-    <button class="restart-btn" onclick="restartGuide()">إعادة من البداية</button>
-  </div>
-
-  <!-- FAQ / troubleshooting -->
-  <div class="faq-section" id="faq-section">
-    <div class="faq-title">أسئلة شائعة</div>
-    <div class="faq-list" id="faq-list"></div>
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <div>جميع الحقوق محفوظة &copy; <a href="#">Khaled Ahmed</a></div>
-    <div style="margin-top:4px">دعم فني: <a href="mailto:support@404error.qd.je">support@404error.qd.je</a></div>
-  </footer>
-
-</div>
-
-<!-- Profile / account modal -->
-<div id="profile-overlay" class="profile-overlay" style="display:none">
-  <div class="profile-card">
-    <div class="profile-card-head">
-      <div class="profile-card-title">حسابي</div>
-      <button class="profile-close" onclick="closeProfile()" aria-label="إغلاق">✕</button>
-    </div>
-
-    <div class="profile-meta" id="profile-meta"></div>
-
-    <div class="field">
-      <label>الاسم الكامل</label>
-      <input type="text" id="pf-name" placeholder="اسمك الكامل">
-    </div>
-    <div class="field">
-      <label>اسم المستخدم</label>
-      <input type="text" id="pf-username" placeholder="اسم المستخدم">
-    </div>
-    <div class="field">
-      <label>رقم الهاتف</label>
-      <input type="tel" id="pf-phone" placeholder="رقم الهاتف">
-    </div>
-    <div class="field">
-      <label>مجال الاستفادة</label>
-      <div class="domain-grid" id="pf-domain-grid">
-        <div class="domain-chip" data-val="AI" onclick="toggleDomain(this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          Artificial Intelligence
-        </div>
-        <div class="domain-chip" data-val="Cybersecurity" onclick="toggleDomain(this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Cybersecurity
-        </div>
-        <div class="domain-chip" data-val="Mechatronics" onclick="toggleDomain(this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-          Mechatronics
-        </div>
-        <div class="domain-chip" data-val="Data Analysis" onclick="toggleDomain(this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          Data Analysis
-        </div>
-        <div class="domain-chip" data-val="Software Engineering" onclick="toggleDomain(this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-          Software Engineering
-        </div>
-        <div class="domain-chip" data-val="Electrical Engineering" onclick="toggleDomain(this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Electrical Engineering
-        </div>
-        <div class="domain-chip" data-val="Mechanical Engineering" onclick="toggleDomain(this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
-          Mechanical Engineering
-        </div>
-      </div>
-    </div>
-
-    <div class="auth-msg" id="profile-msg"></div>
-    <button class="auth-submit" id="profile-save-btn" onclick="saveProfile()" style="margin:0">
-      <span id="profile-save-label">حفظ التعديلات</span>
-      <span class="spinner dark" id="profile-save-spin"></span>
-    </button>
-
-    <!-- Notes -->
-    <div class="profile-divider"></div>
-    <div class="field">
-      <label>ملاحظاتي الشخصية</label>
-      <textarea id="pf-notes" rows="3" placeholder="أي ملاحظات تخصك عن إعدادك — بتتحفظ مع باقي بياناتك"></textarea>
-    </div>
-
-    <!-- Rate experience -->
-    <div class="profile-divider"></div>
-    <div class="field">
-      <label>قيّم تجربتك مع OmniRoute</label>
-      <div class="rating-stars" id="rating-stars"></div>
-    </div>
-
-    <!-- Change email -->
-    <div class="profile-divider"></div>
-    <div class="field">
-      <label>تغيير البريد الإلكتروني</label>
-      <input type="email" id="pf-new-email" placeholder="البريد الإلكتروني الجديد">
-      <button class="restart-btn" id="change-email-btn" onclick="changeEmail()" style="margin-top:8px;width:100%">
-        إرسال رابط تأكيد التغيير
-      </button>
-      <div class="auth-msg" id="email-change-msg"></div>
-      <div class="quickrun-note">هيتبعت رابط تأكيد على البريد الجديد — بعد ما تضغط عليه من جواه، بريدك الحالي يتغيّر تلقائيًا. لو ظهر خطأ "يحتاج تسجيل دخول حديث"، سجّل خروج ثم دخول تاني وحاول من جديد.</div>
-    </div>
-
-    <!-- Usage stats (read-only) -->
-    <div class="profile-divider"></div>
-    <div class="usage-stats" id="usage-stats"></div>
-
-    <!-- Referral code -->
-    <div class="profile-divider"></div>
-    <div class="field">
-      <label>كود الدعوة الخاص بك</label>
-      <div class="referral-row">
-        <div class="referral-code" id="referral-code">—</div>
-        <button class="btn-copy" id="referral-copy-btn" onclick="copyReferral()">نسخ</button>
-      </div>
-    </div>
-
-    <!-- Danger zone -->
-    <div class="profile-divider"></div>
-    <div class="danger-zone">
-      <div class="danger-zone-title">منطقة خطر</div>
-      <div id="danger-zone-locked" style="display:none">
-        <div class="danger-zone-desc">حذف الحساب ذاتيًا متاح لمستخدمي <b style="color:var(--highlight)">Pro</b> فقط. لو محتاج تحذف حسابك، تواصل مع الدعم الفني: <a href="mailto:support@404error.qd.je" style="color:var(--highlight)">support@404error.qd.je</a></div>
-      </div>
-      <div id="danger-zone-active" style="display:none">
-        <div class="danger-zone-desc">حذف حسابك هيمسح بياناتك من قاعدة البيانات وحساب الدخول نهائيًا — الإجراء ده مينفعش يترجع.</div>
-        <button class="danger-btn" id="delete-account-btn" onclick="deleteAccount()">حذف الحساب نهائيًا</button>
-      </div>
-      <div class="auth-msg" id="delete-account-msg"></div>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase SDKs -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-         GoogleAuthProvider, signInWithPopup, sendEmailVerification,
-         sendPasswordResetEmail, onAuthStateChanged, signOut,
-         verifyBeforeUpdateEmail, deleteUser }
-  from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, deleteDoc, increment, arrayUnion }
-  from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import {getFirestore,collection,getDocs,query,orderBy,doc,setDoc,getDoc,updateDoc,increment} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,sendEmailVerification,sendPasswordResetEmail,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+var app=initializeApp({apiKey:"AIzaSyCTGnFOK7m_xNod8mwBPB5HTgTP2BrNm6o",authDomain:"cyberintel-d0d4f.firebaseapp.com",projectId:"cyberintel-d0d4f",storageBucket:"cyberintel-d0d4f.firebasestorage.app",messagingSenderId:"533279564815",appId:"1:533279564815:web:d373567c2be86311127af7a"});
+var db=getFirestore(app),auth=getAuth(app),ITEMS=[],LOADED=false,started=false;
+var TYPES={post:'المدونة',project:'المشاريع',news:'الأخبار'};
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function fdate(s){try{return new Date(s).toLocaleDateString('ar-EG')}catch(e){return ''}}
+function ftime(s){try{return new Date(s).toLocaleString('ar-EG',{dateStyle:'medium',timeStyle:'short'})}catch(e){return fdate(s)}}
+function mkA(u,t){var a=el('a','lnk',t);a.href=/^https?:\/\//i.test(u)?u:'#';a.target='_blank';a.rel='noopener noreferrer';return a}
+function lk(t,n){n=n||el('p');t=String(t||'');var re=/(https?:\/\/[^\s<>"']+)/g,last=0,m;while((m=re.exec(t))){if(m.index>last)n.appendChild(document.createTextNode(t.slice(last,m.index)));n.appendChild(mkA(m[1],m[1]));last=re.lastIndex}if(last<t.length)n.appendChild(document.createTextNode(t.slice(last)));return n}
+function ofType(t){return ITEMS.filter(function(i){return i.type===t})}
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCTGnFOK7m_xNod8mwBPB5HTgTP2BrNm6o",
-  authDomain: "cyberintel-d0d4f.firebaseapp.com",
-  projectId: "cyberintel-d0d4f",
-  storageBucket: "cyberintel-d0d4f.firebasestorage.app",
-  messagingSenderId: "533279564815",
-  appId: "1:533279564815:web:d373567c2be86311127af7a"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
-
-/* ── helpers ── */
-function showMsg(id, text, type) {
-  const el = document.getElementById(id);
-  el.textContent = text; el.className = 'auth-msg ' + type;
+async function load(){
+  try{
+    var snap=await getDocs(query(collection(db,'khcontent'),orderBy('createdAt','desc')));
+    ITEMS=snap.docs.map(function(d){var o=d.data();o.id=d.id;return o});
+  }catch(e){console.error(e)}
+  LOADED=true;buildTicker();route();
 }
-
-function setLoading(btnId, spinId, labelId, loading, labelText) {
-  document.getElementById(btnId).disabled = loading;
-  document.getElementById(spinId).className = 'spinner dark' + (loading ? ' show' : '');
-  document.getElementById(labelId).style.display = loading ? 'none' : 'inline';
+function buildTicker(){
+  var n=ofType('news').slice(0,10);
+  if(!n.length){document.getElementById('ticker').style.display='none';return}
+  var h='';
+  for(var k=0;k<2;k++){n.forEach(function(i){h+='<span>'+i.title.replace(/[<>&]/g,'')+'</span>'})}
+  document.getElementById('ticker-in').innerHTML=h;
+  document.getElementById('ticker').style.display='block';
 }
-
-function clearErrors() {
-  document.querySelectorAll('.field-error').forEach(e => { e.textContent = ''; e.classList.remove('show'); });
-  document.querySelectorAll('input, select').forEach(e => e.classList.remove('error'));
+function card(i){
+  var a=el('a','card rv');a.href='#/item/'+i.id;
+  if(i.cover){var w=el('div','cimg'),im=el('img');im.src=i.cover;im.alt='';im.loading='lazy';w.appendChild(im);a.appendChild(w)}
+  var b=el('div','cb');b.appendChild(el('div','tag',TYPES[i.type]||''));b.appendChild(el('h3',null,i.title));
+  if(i.summary)b.appendChild(el('p',null,i.summary));
+  b.appendChild(el('div','date',ftime(i.createdAt)));a.appendChild(b);return a;
 }
-
-function fieldErr(id, msg) {
-  const inp = document.getElementById(id);
-  const err = document.getElementById(id + '-err');
-  if (inp) inp.classList.add('error');
-  if (err) { err.textContent = msg; err.classList.add('show'); }
+function section(v,title,type,limit,more){
+  var list=ofType(type).slice(0,limit);
+  var h=el('h2','sec rv');h.appendChild(el('span',null,title));
+  if(more){var m=el('a',null,'عرض الكل');m.href='#/'+more;h.appendChild(m)}
+  v.appendChild(h);
+  var g=el('div','grid');
+  if(!list.length){g.appendChild(el('div','empty','لا يوجد محتوى بعد'))}
+  list.forEach(function(i){g.appendChild(card(i))});
+  v.appendChild(g);
 }
+function link(txt,href,cls){var a=el('a','btn '+(cls||''),txt);a.href=href;return a}
 
-async function saveUser(user, extra) {
-  await setDoc(doc(db, 'kjbvv', user.uid), {
-    uid: user.uid,
-    name: extra.name || user.displayName || '',
-    username: extra.username || '',
-    email: user.email,
-    phone: extra.phone || '',
-    domains: extra.domains || [],
-    photoURL: user.photoURL || '',
-    createdAt: new Date().toISOString()
-  }, { merge: true });
+function renderHome(v){
+  var h=el('div','hero');
+  h.appendChild(el('div','lg herologo'));
+  h.appendChild(el('p',null,'مدونة ومشاريع وأخبار، مع دليل مفصل لضبط أدوات الذكاء الاصطناعي على الهاتف والكمبيوتر.'));
+  var b=el('div','btns');b.appendChild(link('المدونة','#/blog','p'));b.appendChild(link('ضبط الذكاء الاصطناعي','#/setup'));b.appendChild(link('المشاريع','#/projects'));
+  var vz=el('div','vis');vz.appendChild(document.createTextNode('عدد الزوار'));vz.appendChild(el('b','vcn','0'));h.appendChild(b);h.appendChild(vz);v.appendChild(h);paintVis();
+  section(v,'آخر الأخبار','news',3,'news');
+  section(v,'آخر المشاريع','project',3,'projects');
+  section(v,'آخر المقالات','post',3,'blog');
 }
-
-/* ── Tab switch ── */
-window.switchTab = function(tab) {
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
-  document.getElementById('login-form').style.display = tab==='login' ? 'block' : 'none';
-  document.getElementById('register-form').style.display = tab==='register' ? 'block' : 'none';
-  document.getElementById('reg-step-1').style.display = 'block';
-  document.getElementById('verify-screen').className = 'verify-screen';
-  clearErrors();
-};
-
-/* ── Domain chips ── */
-window.toggleDomain = function(el) { el.classList.toggle('selected'); };
-function selectedDomains() {
-  return Array.from(document.querySelectorAll('.domain-chip.selected')).map(e => e.dataset.val);
+function renderList(v,title,type){
+  v.appendChild(el('h2','sec',title));
+  var list=ofType(type),g=el('div','grid');
+  if(!list.length)g.appendChild(el('div','empty','لا يوجد محتوى بعد'));
+  list.forEach(function(i){g.appendChild(card(i))});v.appendChild(g);
 }
-
-/* ── Google sign in ── */
-window.signInGoogle = async function() {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    try {
-      const snap = await getDoc(doc(db, 'kjbvv', user.uid));
-      if (!snap.exists()) {
-        // New Google user — save minimal profile
-        await saveUser(user, { name: user.displayName, username: '', phone: '', domains: [] });
-      }
-    } catch (dbErr) {
-      // Don't block sign-in if Firestore write/read fails — the user is authenticated either way.
-      console.error('Firestore error during Google sign-in:', dbErr);
-    }
-    enterApp(user);
-  } catch (e) {
-    showMsg('login-msg', 'فشل تسجيل الدخول بـ Google: ' + (e.message || e.code), 'error');
+function renderBody(box,raw){
+  var data=null;try{data=JSON.parse(raw)}catch(e){}
+  if(!Array.isArray(data)){
+    String(raw||'').split(/\n\s*\n/).forEach(function(t){if(t.trim())box.appendChild(lk(t.trim()))});return;
   }
-};
-
-/* ── Login ── */
-window.doLogin = async function() {
-  clearErrors();
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  let valid = true;
-  if (!email) { fieldErr('login-email', 'أدخل البريد الإلكتروني'); valid = false; }
-  if (!pass) { fieldErr('login-pass', 'أدخل كلمة المرور'); valid = false; }
-  if (!valid) return;
-
-  setLoading('login-btn', 'login-spin', 'login-label', true);
-  try {
-    const cred = await signInWithEmailAndPassword(auth, email, pass);
-    if (!cred.user.emailVerified) {
-      showMsg('login-msg', 'يرجى التحقق من بريدك الإلكتروني أولًا.', 'info');
-      setLoading('login-btn', 'login-spin', 'login-label', false);
-      return;
-    }
-    enterApp(cred.user);
-  } catch (e) {
-    const msgs = {
-      'auth/user-not-found': 'البريد الإلكتروني غير مسجل.',
-      'auth/wrong-password': 'كلمة المرور غير صحيحة.',
-      'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة.',
-      'auth/too-many-requests': 'محاولات كثيرة. حاول لاحقًا.'
-    };
-    showMsg('login-msg', msgs[e.code] || e.message, 'error');
-    setLoading('login-btn', 'login-spin', 'login-label', false);
-  }
-};
-
-/* ── Register ── */
-window.doRegister = async function() {
-  clearErrors();
-  const name = document.getElementById('reg-name').value.trim();
-  const username = document.getElementById('reg-username').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const phone = document.getElementById('reg-phone').value.trim();
-  const pass = document.getElementById('reg-pass').value;
-  const pass2 = document.getElementById('reg-pass2').value;
-  const domains = selectedDomains();
-  let valid = true;
-
-  if (!name) { fieldErr('reg-name', 'أدخل اسمك الكامل'); valid = false; }
-  if (!username) { fieldErr('reg-username', 'أدخل اسم المستخدم'); valid = false; }
-  if (!email) { fieldErr('reg-email', 'أدخل البريد الإلكتروني'); valid = false; }
-  if (!phone) { fieldErr('reg-phone', 'أدخل رقم هاتفك'); valid = false; }
-  if (!pass || pass.length < 8) { fieldErr('reg-pass', 'كلمة المرور 8 أحرف على الأقل'); valid = false; }
-  if (pass !== pass2) { fieldErr('reg-pass2', 'كلمتا المرور غير متطابقتين'); valid = false; }
-  if (domains.length === 0) {
-    const err = document.getElementById('reg-domain-err');
-    err.textContent = 'اختر مجالًا على الأقل'; err.classList.add('show'); valid = false;
-  }
-  if (!valid) return;
-
-  setLoading('reg-btn', 'reg-spin', 'reg-label', true);
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-
-    // Send the verification email first — this must not depend on Firestore succeeding.
-    try {
-      await sendEmailVerification(cred.user);
-    } catch (mailErr) {
-      console.error('sendEmailVerification failed:', mailErr);
-    }
-
-    // Save the profile to Firestore separately — a Firestore issue shouldn't block registration.
-    try {
-      await saveUser(cred.user, { name, username, phone, domains });
-    } catch (dbErr) {
-      console.error('saveUser (Firestore) failed:', dbErr);
-    }
-
-    document.getElementById('reg-step-1').style.display = 'none';
-    document.getElementById('verify-screen').className = 'verify-screen show';
-    setLoading('reg-btn', 'reg-spin', 'reg-label', false);
-  } catch (e) {
-    const msgs = {
-      'auth/email-already-in-use': 'هذا البريد مسجل مسبقًا.',
-      'auth/invalid-email': 'البريد الإلكتروني غير صالح.',
-      'auth/weak-password': 'كلمة المرور ضعيفة جدًا.',
-      'auth/operation-not-allowed': 'التسجيل بالبريد الإلكتروني غير مفعّل على المشروع حاليًا.'
-    };
-    showMsg('reg-msg', msgs[e.code] || (e.message || e.code), 'error');
-    setLoading('reg-btn', 'reg-spin', 'reg-label', false);
-  }
-};
-
-/* ── Resend verification email ── */
-window.resendVerification = async function() {
-  const user = auth.currentUser;
-  const btn = document.getElementById('resend-verify-btn');
-  if (!user) {
-    showMsg('verify-msg', 'سجّل الدخول أولًا ثم أعد المحاولة.', 'error');
-    return;
-  }
-  btn.disabled = true;
-  try {
-    await sendEmailVerification(user);
-    showMsg('verify-msg', 'تم إعادة إرسال رابط التفعيل إلى بريدك.', 'success');
-  } catch (e) {
-    console.error('resendVerification failed:', e);
-    const msgs = {
-      'auth/too-many-requests': 'محاولات كثيرة جدًا. استنى شوية وحاول تاني.'
-    };
-    showMsg('verify-msg', msgs[e.code] || ('تعذّر إعادة الإرسال: ' + (e.message || e.code)), 'error');
-  }
-  btn.disabled = false;
-};
-
-/* ── Forgot password ── */
-window.forgotPass = async function() {
-  clearErrors();
-  const emailInput = document.getElementById('login-email');
-  const email = emailInput.value.trim();
-  if (!email) {
-    fieldErr('login-email', 'أدخل بريدك الإلكتروني أولًا');
-    emailInput.focus();
-    return;
-  }
-  try {
-    await sendPasswordResetEmail(auth, email);
-    showMsg('login-msg', 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك — تفقّد صندوق الوارد ومجلد الرسائل غير المرغوب فيها (Spam).', 'success');
-  } catch (e) {
-    console.error('sendPasswordResetEmail failed:', e);
-    const msgs = {
-      'auth/user-not-found': 'لا يوجد حساب مسجل بهذا البريد الإلكتروني.',
-      'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة.',
-      'auth/operation-not-allowed': 'خاصية إعادة تعيين كلمة المرور غير مفعّلة على المشروع حاليًا.',
-      'auth/too-many-requests': 'محاولات كثيرة جدًا. حاول لاحقًا.'
-    };
-    showMsg('login-msg', msgs[e.code] || ('تعذّر الإرسال: ' + (e.message || e.code)), 'error');
-  }
-};
-
-/* ── Sign out ── */
-window.doSignOut = async function() {
-  await signOut(auth);
-  document.getElementById('main-app').classList.remove('visible');
-  document.getElementById('auth-overlay').style.display = 'flex';
-  switchTab('login');
-};
-
-/* ── Enter app ── */
-function enterApp(user) {
-  document.getElementById('auth-overlay').style.display = 'none';
-  document.getElementById('main-app').classList.add('visible');
-  const name = user.displayName || user.email.split('@')[0];
-  document.getElementById('user-name-bar').textContent = 'أهلًا، ' + name;
-  const avatar = document.getElementById('user-avatar');
-  if (user.photoURL) {
-    avatar.innerHTML = `<img src="${user.photoURL}" alt="">`;
-  } else {
-    avatar.textContent = name[0].toUpperCase();
-  }
-  loadUserData(user);
-  if (typeof animateStats === 'function') animateStats();
-}
-
-/* ── Load profile / progress / update last login (linked to Firestore) ── */
-async function loadUserData(user) {
-  try {
-    const snap = await getDoc(doc(db, 'kjbvv', user.uid));
-    if (snap.exists()) {
-      const data = snap.data();
-      window.userProfile = data;
-
-      // Show the domains the user picked at registration
-      if (data.domains && data.domains.length) {
-        const wrap = document.getElementById('user-domains');
-        wrap.innerHTML = data.domains.map(d => `<span class="user-domain-chip">${d}</span>`).join('');
-        wrap.style.display = 'flex';
-      }
-
-      // Offer to resume a saved setup progress (skip if the guide was already completed)
-      if (data.progress && data.progress.device && data.progress.step > 0 &&
-          (!data.progress.total || data.progress.step < data.progress.total)) {
-        renderResumeBanner(data.progress);
-      }
-    }
-    // Track last login (merge — never overwrites other fields)
-    await setDoc(doc(db, 'kjbvv', user.uid), { lastLogin: new Date().toISOString(), email: user.email }, { merge: true });
-  } catch (e) {
-    console.error('loadUserData failed:', e);
-  }
-
-}
-
-/* ── Profile / account modal ── */
-window.openProfile = async function() {
-  const user = auth.currentUser;
-  if (!user) return;
-  document.getElementById('profile-overlay').style.display = 'flex';
-  document.getElementById('profile-msg').textContent = '';
-  document.getElementById('profile-msg').className = 'auth-msg';
-  document.getElementById('email-change-msg').textContent = '';
-  document.getElementById('email-change-msg').className = 'auth-msg';
-  document.getElementById('delete-account-msg').textContent = '';
-  document.getElementById('delete-account-msg').className = 'auth-msg';
-  document.getElementById('pf-new-email').value = '';
-
-  // Fetch fresh so usage stats / rating are always current
-  let data = window.userProfile || {};
-  try {
-    const snap = await getDoc(doc(db, 'kjbvv', user.uid));
-    if (snap.exists()) { data = snap.data(); window.userProfile = data; }
-  } catch (e) { console.error('openProfile fetch failed:', e); }
-
-  document.getElementById('pf-name').value = data.name || user.displayName || '';
-  document.getElementById('pf-username').value = data.username || '';
-  document.getElementById('pf-phone').value = data.phone || '';
-  document.getElementById('pf-notes').value = data.notes || '';
-  document.querySelectorAll('#pf-domain-grid .domain-chip').forEach(c => {
-    c.classList.toggle('selected', (data.domains || []).includes(c.dataset.val));
+  data.forEach(function(b){
+    if(typeof b==='string'){box.appendChild(lk(b));return}
+    if(b.img){var im=el('img');im.src=b.img;im.alt='';im.loading='lazy';box.appendChild(im);return}
+    var p=el(b.h?'h2':'p');if(b.link){p.appendChild(mkA(b.link,b.text||b.link))}else lk(b.text||'',p);
+    if(b.color)p.style.color=b.color;
+    if(b.bold)p.style.fontWeight='700';
+    if(b.size)p.style.fontSize=b.size+'px';
+    if(b.align)p.style.textAlign=b.align;
+    box.appendChild(p);
   });
-
-  const created = data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-EG') : '—';
-  const last = data.lastLogin ? new Date(data.lastLogin).toLocaleString('ar-EG') : '—';
-  const isPro = !!data.isPro;
-  const tierBadge = isPro
-    ? '<span style="color:var(--highlight);font-weight:600">Pro ✨</span>'
-    : '<span style="color:var(--text3)">عادي</span>';
-  document.getElementById('profile-meta').innerHTML =
-    `<div>البريد الإلكتروني: ${user.email}</div><div>عضو منذ: ${created}</div><div>آخر دخول: ${last}</div><div>نوع الحساب: ${tierBadge}</div>`;
-
-  document.getElementById('danger-zone-active').style.display = isPro ? 'block' : 'none';
-  document.getElementById('danger-zone-locked').style.display = isPro ? 'none' : 'block';
-
-  renderRatingStars(data.rating || 0);
-
-  const completions = data.setupCompletions || 0;
-  const devices = (data.devicesUsed && data.devicesUsed.length) ? data.devicesUsed.join('، ') : 'لسه معملتش إعداد كامل';
-  document.getElementById('usage-stats').innerHTML = `
-    <div class="usage-stats-row"><span>مرات الإعداد المكتملة</span><span class="usage-stats-val">${completions}</span></div>
-    <div class="usage-stats-row"><span>الأجهزة المستخدمة</span><span class="usage-stats-val" style="text-align:left">${devices}</span></div>
-  `;
-
-  let code = data.referralCode;
-  if (!code) {
-    code = 'OMNI-' + user.uid.slice(0, 6).toUpperCase();
-    setDoc(doc(db, 'kjbvv', user.uid), { referralCode: code }, { merge: true }).catch(e => console.error('save referral code failed:', e));
-    window.userProfile = Object.assign({}, window.userProfile, { referralCode: code });
-  }
-  document.getElementById('referral-code').textContent = code;
-};
-
-window.closeProfile = function() {
-  document.getElementById('profile-overlay').style.display = 'none';
-};
-
-window.saveProfile = async function() {
-  const user = auth.currentUser;
-  if (!user) return;
-  const name = document.getElementById('pf-name').value.trim();
-  const username = document.getElementById('pf-username').value.trim();
-  const phone = document.getElementById('pf-phone').value.trim();
-  const notes = document.getElementById('pf-notes').value.trim();
-  const domains = Array.from(document.querySelectorAll('#pf-domain-grid .domain-chip.selected')).map(e => e.dataset.val);
-
-  setLoading('profile-save-btn', 'profile-save-spin', 'profile-save-label', true);
-  try {
-    await setDoc(doc(db, 'kjbvv', user.uid), { name, username, phone, domains, notes }, { merge: true });
-    window.userProfile = Object.assign({}, window.userProfile, { name, username, phone, domains, notes });
-
-    // Reflect changes immediately in the header
-    document.getElementById('user-name-bar').textContent = 'أهلًا، ' + (name || user.email.split('@')[0]);
-    const wrap = document.getElementById('user-domains');
-    if (domains.length) {
-      wrap.innerHTML = domains.map(d => `<span class="user-domain-chip">${d}</span>`).join('');
-      wrap.style.display = 'flex';
-    } else {
-      wrap.style.display = 'none';
-    }
-
-    showMsg('profile-msg', 'تم حفظ التعديلات بنجاح.', 'success');
-  } catch (e) {
-    console.error('saveProfile failed:', e);
-    showMsg('profile-msg', 'تعذّر الحفظ: ' + (e.message || e.code), 'error');
-  }
-  setLoading('profile-save-btn', 'profile-save-spin', 'profile-save-label', false);
-};
-
-/* ── Feature 1: star rating (auto-saves) ── */
-function renderRatingStars(current) {
-  const wrap = document.getElementById('rating-stars');
-  wrap.innerHTML = '';
-  for (let n = 1; n <= 5; n++) {
-    const s = document.createElement('span');
-    s.className = 'rating-star' + (n <= current ? ' filled' : '');
-    s.textContent = '★';
-    s.onclick = () => setRating(n);
-    wrap.appendChild(s);
-  }
+}
+function shareUrl(id){return location.origin+location.pathname+'#/item/'+id}
+function renderItem(v,id){
+  var it=ITEMS.filter(function(x){return x.id===id})[0];
+  if(!it){v.appendChild(el('div','empty','المحتوى غير موجود'));return}
+  document.title=it.title+' - Khaled Ahmed';
+  var a=el('div','art');a.appendChild(el('div','tag',TYPES[it.type]||''));a.appendChild(el('h1',null,it.title));
+  a.appendChild(el('div','date',ftime(it.createdAt)));
+  var sh=el('div','share');
+  var cp=el('button','btn','نسخ الرابط');cp.onclick=function(){navigator.clipboard.writeText(shareUrl(id)).then(function(){cp.textContent='تم النسخ'})};
+  sh.appendChild(cp);
+  if(navigator.share){var s=el('button','btn p','مشاركة');s.onclick=function(){navigator.share({title:it.title,url:shareUrl(id)})};sh.appendChild(s)}
+  var wa=el('a','btn','واتساب');wa.target='_blank';wa.href='https://wa.me/?text='+encodeURIComponent(it.title+' '+shareUrl(id));sh.appendChild(wa);
+  a.appendChild(sh);
+  if(it.cover){var c=el('img','cover');c.src=it.cover;c.alt='';a.appendChild(c)}
+  if(it.summary)a.appendChild(lk(it.summary));
+  var body=el('div','body');renderBody(body,it.body);a.appendChild(body);
+  if(it.link){var l=el('a','btn p','فتح الرابط');l.href=it.link;l.target='_blank';l.rel='noopener';a.appendChild(l)}
+  v.appendChild(a);
 }
 
-window.setRating = async function(n) {
-  renderRatingStars(n);
-  const user = auth.currentUser;
-  if (!user) return;
-  try {
-    await setDoc(doc(db, 'kjbvv', user.uid), { rating: n }, { merge: true });
-    window.userProfile = Object.assign({}, window.userProfile, { rating: n });
-  } catch (e) {
-    console.error('setRating failed:', e);
-  }
-};
-
-/* ── Feature 2: referral code copy ── */
-window.copyReferral = function() {
-  const code = document.getElementById('referral-code').textContent;
-  const btn = document.getElementById('referral-copy-btn');
-  navigator.clipboard.writeText(code).then(() => {
-    btn.textContent = 'تم النسخ';
-    setTimeout(() => { btn.textContent = 'نسخ'; }, 2000);
-  }).catch(() => { btn.textContent = 'انسخ يدويًا'; });
-};
-
-/* ── Feature 3: usage stats (setup completions + linked devices) — populated in openProfile,
-     incremented from trackCompletion() below ── */
-window.trackCompletion = async function(device, os) {
-  const user = auth.currentUser;
-  if (!user) return;
-  const label = device === 'phone'
-    ? (os === 'ios' ? 'الآيفون (iSH)' : 'أندرويد (Termux)')
-    : ('اللابتوب (' + (os === 'windows' ? 'Windows' : 'Linux') + ')');
-  try {
-    await setDoc(doc(db, 'kjbvv', user.uid), {
-      setupCompletions: increment(1),
-      devicesUsed: arrayUnion(label)
-    }, { merge: true });
-  } catch (e) {
-    console.error('trackCompletion failed:', e);
-  }
-};
-
-/* ── Feature 4: change email (Firebase sends a verification link to the new address) ── */
-window.changeEmail = async function() {
-  const user = auth.currentUser;
-  if (!user) return;
-  const newEmail = document.getElementById('pf-new-email').value.trim();
-  if (!newEmail) {
-    showMsg('email-change-msg', 'أدخل البريد الإلكتروني الجديد.', 'error');
-    return;
-  }
-  const btn = document.getElementById('change-email-btn');
-  btn.disabled = true;
-  try {
-    await verifyBeforeUpdateEmail(user, newEmail);
-    showMsg('email-change-msg', 'تم إرسال رابط تأكيد إلى ' + newEmail + ' — افتحه لإتمام تغيير بريدك. بريدك الحالي هيفضل شغال لحد ما تأكد.', 'success');
-    document.getElementById('pf-new-email').value = '';
-  } catch (e) {
-    console.error('changeEmail failed:', e);
-    const msgs = {
-      'auth/requires-recent-login': 'الإجراء ده محتاج تسجيل دخول حديث — سجّل خروج ثم دخول تاني وحاول من جديد.',
-      'auth/email-already-in-use': 'البريد ده مستخدم بالفعل في حساب تاني.',
-      'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة.'
-    };
-    showMsg('email-change-msg', msgs[e.code] || ('تعذّر الإرسال: ' + (e.message || e.code)), 'error');
-  }
-  btn.disabled = false;
-};
-
-/* ── Feature 5: personal notes — saved via saveProfile() above ── */
-
-/* ── Feature 6: delete account ── */
-window.deleteAccount = async function() {
-  const user = auth.currentUser;
-  if (!user) return;
-  if (!(window.userProfile && window.userProfile.isPro)) {
-    showMsg('delete-account-msg', 'حذف الحساب ذاتيًا متاح لمستخدمي Pro فقط.', 'error');
-    return;
-  }
-  if (!confirm('متأكد إنك عايز تحذف حسابك نهائيًا؟ هيتمسح كل بياناتك من قاعدة البيانات وحساب الدخول، والإجراء ده مش هينفع يترجع.')) return;
-  const btn = document.getElementById('delete-account-btn');
-  btn.disabled = true;
-  try {
-    await deleteDoc(doc(db, 'kjbvv', user.uid));
-    await deleteUser(user);
-    window.location.reload();
-  } catch (e) {
-    console.error('deleteAccount failed:', e);
-    const msgs = {
-      'auth/requires-recent-login': 'الإجراء ده محتاج تسجيل دخول حديث — سجّل خروج ثم دخول تاني وحاول من جديد.'
-    };
-    showMsg('delete-account-msg', msgs[e.code] || ('تعذّر الحذف: ' + (e.message || e.code)), 'error');
-    btn.disabled = false;
-  }
-};
-
-/* ── Remember the user's preferred tool across sessions ── */
-window.savePreferredTool = async function(tool) {
-  const user = auth.currentUser;
-  if (!user || tool === '_test') return;
-  try {
-    await setDoc(doc(db, 'kjbvv', user.uid), { preferredTool: tool }, { merge: true });
-    window.userProfile = Object.assign({}, window.userProfile, { preferredTool: tool });
-  } catch (e) {
-    console.error('savePreferredTool failed:', e);
-  }
-};
-
-function renderResumeBanner(progress) {
-  const banner = document.getElementById('resume-banner');
-  const deviceLabel = progress.device === 'phone'
-    ? (progress.os === 'ios' ? 'الآيفون (iSH)' : 'أندرويد (Termux)')
-    : 'اللابتوب (' + (progress.os === 'windows' ? 'Windows' : 'Linux') + ')';
-  banner.style.display = 'flex';
-  banner.innerHTML = `
-    <div class="resume-banner-text">لسه فاضل عندك خطوات على <b>${deviceLabel}</b> — وقفت عند الخطوة ${progress.step}.</div>
-    <div class="resume-banner-actions">
-      <button class="resume-btn" onclick="resumeProgress('${progress.device}', ${progress.os ? "'" + progress.os + "'" : 'null'}, ${progress.step})">استكمل من هنا</button>
-      <button class="resume-btn secondary" onclick="dismissResume()">تجاهل</button>
-    </div>`;
+/* ---------- Setup guide ---------- */
+var DEV={android:'أندرويد (Termux)',ios:'آيفون (iSH)',windows:'ويندوز',linux:'لينكس'};
+var TOOLS={omni:'OmniRoute',hum:'Humanizer',both:'الاثنان معًا'};
+var gDev='android',gTool='omni';
+function base(d){
+  var S={
+  android:[
+   {t:'تثبيت Termux',d:'حمّل Termux من F-Droid وليس من Google Play. افتح الرابط، نزّل ملف APK واسمح للمتصفح بتثبيت التطبيقات من مصادر خارجية عند السؤال. بعد التثبيت افتح Termux وانتظر حتى ينتهي إعداده الأول.',l:'https://f-droid.org/packages/com.termux/'},
+   {t:'تحديث الحزم',d:'نحدّث قاعدة بيانات الحزم. لو سألك Termux عن استبدال ملف إعداد اكتب Y ثم Enter.',c:'pkg update -y && pkg upgrade -y'},
+   {t:'تثبيت Node.js وgit وcurl',d:'هذه أدوات أساسية لكل ما بعدها. الحجم تقريبًا 80 ميجابايت فتأكد من اتصال جيد.',c:'pkg install -y nodejs git curl'},
+   {t:'التحقق من التثبيت',d:'يجب أن يظهر رقما إصدار للأمرين.',c:'node -v && npm -v'}],
+  ios:[
+   {t:'تثبيت iSH',d:'iOS لا يدعم Termux، لذلك نستخدم iSH، وهو تطبيق مجاني رسمي على App Store يشغّل Alpine Linux. افتحه بعد التثبيت وانتظر ظهور الطرفية.',l:'https://apps.apple.com/app/ish-shell/id1436902243'},
+   {t:'تحديث الحزم',d:'iSH يحاكي معمارية x86 فالأوامر أبطأ من المعتاد. هذا طبيعي، لا تغلق التطبيق.',c:'apk update && apk upgrade'},
+   {t:'تثبيت Node.js وgit وcurl',d:'قد يستغرق بضع دقائق بسبب المحاكاة.',c:'apk add nodejs npm git curl'},
+   {t:'التحقق من التثبيت',d:'يجب أن يظهر رقما إصدار.',c:'node -v && npm -v'}],
+  windows:[
+   {t:'تثبيت Node.js',d:'حمّل نسخة LTS بصيغة Windows Installer (.msi) وشغّله واضغط Next حتى النهاية، وأبقِ خيار Add to PATH مفعّلًا. أعد تشغيل الجهاز لو طلب المعالج ذلك.',l:'https://nodejs.org/en/download'},
+   {t:'تثبيت Git',d:'مطلوب لسحب بعض الإضافات. ثبّته بالإعدادات الافتراضية.',l:'https://git-scm.com/download/win'},
+   {t:'فتح PowerShell والتحقق',d:'اضغط مفتاح Windows، اكتب PowerShell واضغط Enter، ثم شغّل الأمر. لو ظهرت رسالة not recognized أعد تشغيل الجهاز.',c:'node -v; npm -v; git --version'}],
+  linux:[
+   {t:'تحديث النظام',d:'الأوامر لتوزيعات Debian وUbuntu. سيطلب كلمة مرور المستخدم ولن تظهر أثناء الكتابة، وهذا طبيعي.',c:'sudo apt update && sudo apt upgrade -y'},
+   {t:'تثبيت Node.js وgit وcurl',d:'نستخدم مستودع NodeSource للحصول على إصدار LTS حديث بدل نسخة apt القديمة.',c:'curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs git curl'},
+   {t:'التحقق من التثبيت',d:'يجب أن يظهر رقما إصدار.',c:'node -v && npm -v'}]};
+  return S[d];
+}
+function omniSteps(d){
+  var sudo=d==='linux'?'sudo ':'';
+  var s=[
+   {t:'تثبيت OmniRoute',d:'نثبّته كحزمة عالمية عبر npm، وبعدها يعمل الأمر omniroute من أي مسار.'+(d==='windows'?' لو ظهرت مشكلة صلاحيات شغّل PowerShell بخيار Run as Administrator.':''),c:sudo+'npm install -g omniroute'},
+   {t:'تشغيل السيرفر',d:'افتح نافذة أو تبويب طرفية جديد واتركه مفتوحًا طوال الاستخدام. السيرفر يستمع على المنفذ 20128. لإيقافه اضغط Ctrl+C.'+(d==='android'?' لا تسمح لإعدادات توفير البطارية بإغلاق Termux.':'')+(d==='ios'?' iOS قد يوقف iSH في الخلفية، فأبقِه مفتوحًا.':''),c:'omniroute start'},
+   {t:'اختبار الاتصال',d:'من تبويب ثانٍ، شغّل الاختبار. ظهور JSON فيه content يعني أن السيرفر يعمل. الـ endpoint هو http://localhost:20128/v1 والموديل auto.',c:d==='windows'?'curl http://localhost:20128/v1/models':'curl http://localhost:20128/v1/models'},
+   {t:'ربط أداتك',d:'اختر الأمر المناسب لأداتك. لتشغيل Claude Code عبر OmniRoute استخدم الأول. للأدوات الأخرى استبدل claude باسم الأداة أو استخدم configure.',c:'omniroute run claude --model auto'}];
+  return s;
+}
+function humSteps(d){
+  var sudo=d==='linux'?'sudo ':'';
+  var s=[
+   {t:'تثبيت Claude Code',d:'Humanizer إضافة (skill) تعمل داخل Claude Code أو Codex، لذلك نثبّت Claude Code أولًا.',c:sudo+'npm install -g @anthropic-ai/claude-code'},
+   {t:'تشغيل Claude Code',d:'شغّله من أي مجلد واتبع تسجيل الدخول الذي يظهر. سيطبع رابطًا تفتحه في المتصفح لإتمام الدخول.',c:'claude'}];
+  if(d==='ios')s.push({t:'تنبيه خاص بآيفون',d:'Claude Code قد لا يعمل بثبات داخل iSH بسبب المحاكاة. لو تعطل، نفّذ خطوات Humanizer على كمبيوتر أو أندرويد.'});
+  s.push({t:'إضافة مستودع Humanizer',d:'اكتب الأمر التالي داخل جلسة Claude Code نفسها وليس في الطرفية العادية. هذا أمر Claude Code وليس أمر نظام.',c:'/plugin marketplace add blader/humanizer'});
+  s.push({t:'تثبيت الإضافة',d:'بعد إضافة المستودع ثبّت الإضافة. لو طلب منك إعادة تشغيل الجلسة فاخرج بـ /exit ثم شغّل claude من جديد.',c:'/plugin install humanizer@humanizer'});
+  s.push({t:'الاستخدام',d:'الصق نصًا واطلب من Claude أن يستخدم Humanizer لجعله أقرب لأسلوب الكتابة البشرية. المرجع الرسمي للتعليمات: github.com/blader/humanizer',l:'https://github.com/blader/humanizer#installation'});
+  return s;
+}
+function guideSteps(){
+  var s=base(gDev).slice();
+  if(gTool==='omni'||gTool==='both')s=s.concat(omniSteps(gDev));
+  if(gTool==='hum'||gTool==='both')s=s.concat(humSteps(gDev));
+  return s;
+}
+function chipRow(obj,cur,fn){
+  var w=el('div','chips');
+  Object.keys(obj).forEach(function(k){var c=el('div','chip'+(k===cur?' on':''),obj[k]);c.onclick=function(){fn(k)};w.appendChild(c)});
+  return w;
+}
+function renderSetup(v){
+  v.appendChild(el('h2','sec','ضبط الذكاء الاصطناعي'));
+  v.appendChild(el('p',null,'اختر جهازك ثم الأداة، وستظهر الخطوات كاملة بالترتيب.')).style.cssText='color:var(--t2);font-size:13px;margin-bottom:10px';
+  v.appendChild(chipRow(DEV,gDev,function(k){gDev=k;route()}));
+  v.appendChild(chipRow(TOOLS,gTool,function(k){gTool=k;route()}));
+  guideSteps().forEach(function(s,i){
+    var b=el('div','step rv');var h=el('h3');h.appendChild(el('i',null,String(i+1)));h.appendChild(document.createTextNode(s.t));b.appendChild(h);
+    b.appendChild(el('p',null,s.d));
+    if(s.l){var a=el('a','btn p','فتح الرابط');a.href=s.l;a.target='_blank';a.rel='noopener';b.appendChild(a)}
+    if(s.c){var c=el('div','cmd');c.appendChild(el('span',null,s.c));var bt=el('button',null,'نسخ');bt.onclick=function(){navigator.clipboard.writeText(s.c).then(function(){bt.textContent='تم'})};c.appendChild(bt);b.appendChild(c)}
+    v.appendChild(b);
+  });
+  v.appendChild(el('div','note','الأوامر التي تبدأ بـ / تُكتب داخل Claude Code فقط. باقي الأوامر تُكتب في الطرفية.'));
 }
 
-window.dismissResume = function() {
-  document.getElementById('resume-banner').style.display = 'none';
-};
-
-window.resumeProgress = function(device, os, step) {
-  currentDevice = device;
-  currentOS = os;
-  document.getElementById('resume-banner').style.display = 'none';
-  document.querySelectorAll('#device-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.device === device));
-  if (device === 'laptop') {
-    document.getElementById('os-select').style.display = 'block';
-    document.querySelectorAll('#os-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.os === os));
-  } else if (device === 'phone') {
-    document.getElementById('phone-os-select').style.display = 'block';
-    document.querySelectorAll('#phone-os-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.os === (os || 'android')));
-  }
-  STEPS = device === 'phone' ? (os === 'ios' ? STEPS_IPHONE : STEPS_PHONE) : (os === 'windows' ? STEPS_WINDOWS : STEPS_LINUX);
-  currentStep = Math.min(step, STEPS.length);
-  selectedTools = {};
-  document.getElementById('progress-bar-wrap').style.display = 'flex';
-  renderQuickRun();
-  document.getElementById('final-screen').classList.remove('show');
-  renderSteps();
-  document.getElementById('progress-bar-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
-};
-
-/* ── Save setup progress to Firestore (linked to user account) ── */
-window.saveProgress = async function saveProgress(device, os, step) {
-  const user = auth.currentUser;
-  if (!user) return;
-  try {
-    await setDoc(doc(db, 'kjbvv', user.uid), {
-      progress: { device, os: os || null, step, total: STEPS ? STEPS.length : null, updatedAt: new Date().toISOString() }
-    }, { merge: true });
-  } catch (e) {
-    console.error('saveProgress failed:', e);
-  }
+/* ---------- Router ---------- */
+function route(){
+  var h=location.hash||'#/',v=document.getElementById('view');
+  v.innerHTML='';v.style.animation='none';void v.offsetWidth;v.style.animation='';
+  document.title='Khaled Ahmed';
+  var r='home';
+  if(!LOADED&&h.indexOf('#/setup')!==0){v.appendChild(el('div','empty','جارِ التحميل'));return}
+  if(h.indexOf('#/blog')===0){r='blog';renderList(v,'المدونة','post')}
+  else if(h.indexOf('#/projects')===0){r='projects';renderList(v,'المشاريع','project')}
+  else if(h.indexOf('#/news')===0){r='news';renderList(v,'الأخبار','news')}
+  else if(h.indexOf('#/setup')===0){r='setup';renderSetup(v)}
+  else if(h.indexOf('#/profile')===0){r='profile';renderProfile(v)}
+  else if(h.indexOf('#/item/')===0){r='';renderItem(v,h.slice(7))}
+  else renderHome(v);
+  document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('on',a.dataset.r===r)});
+  window.scrollTo(0,0);
+  setTimeout(observe,30);
 }
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('show');io.unobserve(e.target)}})},{threshold:.08});
+function observe(){document.querySelectorAll('.rv:not(.show)').forEach(function(n){io.observe(n)})}
+window.addEventListener('hashchange',route);
+route();
 
-/* ── Auth state ── */
-onAuthStateChanged(auth, user => {
-  if (user && user.emailVerified) {
-    enterApp(user);
-  }
+var DOMS=['AI','Cybersecurity','Mechatronics','Data Analysis','Software Engineering','Electrical Engineering','Mechanical Engineering'];
+function $(i){return document.getElementById(i)}
+function am(t,k){var e=$('amsg');e.textContent=t;e.className='amsg '+(t?k:'')}
+function chips(box,sel){box.innerHTML='';DOMS.forEach(function(d){var c=el('div','dc'+(sel&&sel.indexOf(d)>-1?' on':''),d);c.dataset.v=d;c.onclick=function(){c.classList.toggle('on')};box.appendChild(c)})}
+function picked(box){return Array.prototype.map.call(box.querySelectorAll('.dc.on'),function(c){return c.dataset.v})}
+chips($('dgrid'));
+window.toggleMenu=function(){$('nav').classList.toggle('open');$('scrim').classList.toggle('open')};
+window.switchTab=function(t){$('tl').className=t==='login'?'on':'';$('tr').className=t==='register'?'on':'';$('fl').style.display=t==='login'?'block':'none';$('fr').style.display=t==='register'?'block':'none';am('')};
+async function saveUser(u,x){await setDoc(doc(db,'kjbvv',u.uid),{uid:u.uid,name:x.name||u.displayName||'',username:x.username||'',email:u.email,phone:x.phone||'',domains:x.domains||[],photoURL:u.photoURL||'',createdAt:new Date().toISOString()},{merge:true})}
+window.signInGoogle=async function(){
+  try{var r=await signInWithPopup(auth,new GoogleAuthProvider());
+    try{var sn=await getDoc(doc(db,'kjbvv',r.user.uid));if(!sn.exists())await saveUser(r.user,{})}catch(e){console.error(e)}
+  }catch(e){am('فشل الدخول بـ Google: '+(e.code||e.message),'er')}
+};
+window.doLogin=async function(){
+  var e=$('le').value.trim(),p=$('lp').value;
+  if(!e||!p){am('أدخل البريد وكلمة المرور.','er');return}
+  try{var c=await signInWithEmailAndPassword(auth,e,p);
+    if(!c.user.emailVerified){am('يرجى تفعيل بريدك الإلكتروني أولًا.','in');$('resend').style.display='block'}
+  }catch(x){var M={'auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة.','auth/user-not-found':'البريد غير مسجل.','auth/wrong-password':'كلمة المرور غير صحيحة.','auth/too-many-requests':'محاولات كثيرة، حاول لاحقًا.'};am(M[x.code]||x.message,'er')}
+};
+window.doRegister=async function(){
+  var n=$('rn').value.trim(),u=$('ru').value.trim(),e=$('re').value.trim(),ph=$('rph').value.trim(),p=$('rp').value,p2=$('rp2').value,d=picked($('dgrid'));
+  if(!n||!u||!e||!ph){am('أكمل كل الحقول.','er');return}
+  if(p.length<8){am('كلمة المرور 8 أحرف على الأقل.','er');return}
+  if(p!==p2){am('كلمتا المرور غير متطابقتين.','er');return}
+  if(!d.length){am('اختر مجالًا واحدًا على الأقل.','er');return}
+  try{var c=await createUserWithEmailAndPassword(auth,e,p);
+    try{await sendEmailVerification(c.user)}catch(x){console.error(x)}
+    try{await saveUser(c.user,{name:n,username:u,phone:ph,domains:d})}catch(x){console.error(x)}
+    switchTab('login');am('تم إنشاء الحساب. افتح رابط التفعيل المرسل إلى بريدك (تفقد Spam) ثم سجّل الدخول.','ok');$('resend').style.display='block';
+  }catch(x){var M={'auth/email-already-in-use':'هذا البريد مسجل مسبقًا.','auth/invalid-email':'البريد غير صالح.','auth/weak-password':'كلمة المرور ضعيفة.'};am(M[x.code]||x.message,'er')}
+};
+window.resendV=async function(){var u=auth.currentUser;if(!u){am('سجّل الدخول أولًا ثم أعد المحاولة.','er');return}try{await sendEmailVerification(u);am('تم إرسال رابط التفعيل.','ok')}catch(x){am(x.code==='auth/too-many-requests'?'محاولات كثيرة، انتظر قليلًا.':x.message,'er')}};
+window.forgot=async function(){var e=$('le').value.trim();if(!e){am('أدخل بريدك أولًا.','er');return}try{await sendPasswordResetEmail(auth,e);am('تم إرسال رابط إعادة التعيين إلى بريدك.','ok')}catch(x){am(x.message||x.code,'er')}};
+window.doSignOut=async function(){if($('nav').classList.contains('open'))toggleMenu();await signOut(auth);location.hash='#/'};
+var VIS=null,CU=null;
+function paintVis(){if(VIS===null)return;document.querySelectorAll('.vcn').forEach(function(e){var t0=performance.now();(function tk(n){var p=Math.min((n-t0)/900,1);e.textContent=Math.round(VIS*(1-Math.pow(1-p,3))).toLocaleString('ar-EG');if(p<1)requestAnimationFrame(tk)})(t0)})}
+async function countVisit(){
+  try{await updateDoc(doc(db,'khmeta','stats'),{real:increment(1)})}catch(e){console.error(e)}
+  try{var s=await getDoc(doc(db,'khmeta','stats'));var d=s.exists()?s.data():{};VIS=(Number(d.base)||0)+(Number(d.real)||0);paintVis()}catch(e){console.error(e)}
+}
+window.closeFw=function(){$('fw').classList.remove('show');try{localStorage.setItem('fwx',String(Date.now()))}catch(e){}};
+function showFw(){var t=0;try{t=Number(localStorage.getItem('fwx'))||0}catch(e){}if(Date.now()-t<864e5)return;setTimeout(function(){$('fw').classList.add('show')},6000)}
+function go(u){
+  $('auth').style.display='none';$('cmp').style.display='none';
+  setDoc(doc(db,'kjbvv',u.uid),{lastLogin:new Date().toISOString(),email:u.email},{merge:true}).catch(function(){});
+  load();countVisit();showFw();
+}
+window.saveComplete=async function(){
+  var n=$('cn').value.trim(),us=$('cu').value.trim(),ph=$('cph').value.trim(),d=picked($('cdg')),m=$('cmsg');
+  if(!n||!us||!ph||!d.length){m.textContent='أكمل كل الحقول واختر مجالًا واحدًا على الأقل.';m.className='amsg er';return}
+  try{await setDoc(doc(db,'kjbvv',CU.uid),{name:n,username:us,phone:ph,domains:d,email:CU.email},{merge:true});go(CU)}catch(x){m.textContent='تعذر الحفظ: '+(x.code||x.message);m.className='amsg er'}
+};
+async function checkProfile(u){
+  CU=u;var d={};
+  try{var s=await getDoc(doc(db,'kjbvv',u.uid));if(s.exists())d=s.data()}catch(e){console.error(e)}
+  if(d.name&&d.username&&d.phone&&d.domains&&d.domains.length){go(u);return}
+  $('cn').value=d.name||u.displayName||'';$('cu').value=d.username||'';$('cph').value=d.phone||'';chips($('cdg'),d.domains||[]);
+  $('auth').style.display='none';$('cmp').style.display='flex';
+}
+document.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.closest('.brand,.hero,.acard'))e.preventDefault()});
+document.addEventListener('dragstart',function(e){e.preventDefault()});
+onAuthStateChanged(auth,function(u){
+  if(u&&u.emailVerified){if(!started){started=true;checkProfile(u)}}
+  else{started=false;$('cmp').style.display='none';$('auth').style.display='flex'}
 });
+async function renderProfile(v){
+  var u=auth.currentUser;if(!u)return;
+  var d={};try{var sn=await getDoc(doc(db,'kjbvv',u.uid));if(sn.exists())d=sn.data()}catch(e){}
+  if((location.hash||'').indexOf('#/profile')!==0)return;
+  v.innerHTML='';
+  var w=el('div','pf');
+  var av=el('div','av');if(u.photoURL){var im=el('img');im.src=u.photoURL;im.alt='';av.appendChild(im)}else av.textContent=((d.name||u.email||'?')[0]||'?').toUpperCase();
+  w.appendChild(av);
+  w.appendChild(el('div','pm',u.email+'\nعضو منذ: '+fdate(d.createdAt)+'\nآخر دخول: '+(d.lastLogin?new Date(d.lastLogin).toLocaleString('ar-EG'):'-'))).style.whiteSpace='pre-line';
+  function f(lab,id,val,ta){w.appendChild(el('label',null,lab));var i=el(ta?'textarea':'input');i.id=id;i.value=val||'';if(ta)i.rows=3;w.appendChild(i)}
+  f('الاسم الكامل','pn',d.name);f('اسم المستخدم','pu',d.username);f('رقم الهاتف','pph',d.phone);
+  w.appendChild(el('label',null,'مجال الاستفادة'));var g=el('div','dg');chips(g,d.domains||[]);w.appendChild(g);
+  f('ملاحظات شخصية','pnt',d.notes,true);
+  var m=el('div','amsg');m.id='pmsg';w.appendChild(m);
+  var r=el('div','row');
+  var sv=el('button','btn p','حفظ التعديلات');sv.onclick=async function(){
+    try{await setDoc(doc(db,'kjbvv',u.uid),{name:$('pn').value.trim(),username:$('pu').value.trim(),phone:$('pph').value.trim(),notes:$('pnt').value.trim(),domains:picked(g)},{merge:true});m.textContent='تم حفظ التعديلات.';m.className='amsg ok'}catch(x){m.textContent='تعذر الحفظ: '+(x.code||x.message);m.className='amsg er'}};
+  var so=el('button','btn','تسجيل الخروج');so.onclick=window.doSignOut;
+  r.appendChild(sv);r.appendChild(so);w.appendChild(r);v.appendChild(w);
+}
 
 </script>
-
-<!-- Guide logic -->
-<script>
-const TOOLS = {
-  'claude-code': 'Claude Code',
-  'cursor': 'Cursor CLI',
-  'cline': 'Cline',
-  'opencode': 'OpenCode',
-  'aider': 'Aider',
-  'continue': 'Continue'
-};
-
-const STEPS_PHONE = [
-  {
-    title: "تنزيل وتثبيت Termux",
-    badge: "مطلوب",
-    desc: `Termux هو محاكي طرفية (terminal) مجاني لنظام Android يتيح لك تشغيل أوامر Linux على هاتفك.
-يُنصح بتحميله من F-Droid وليس من Google Play لأن إصدار F-Droid يحصل على تحديثات أسرع ولا يواجه قيود.`,
-    downloads: [
-      {
-        href: "https://f-droid.org/packages/com.termux/",
-        label: "Termux",
-        sub: "الإصدار الرسمي من F-Droid (موصى به)",
-        icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>`
-      }
-    ],
-    note: "بعد التثبيت افتح Termux وانتظر حتى يكتمل إعداد البيئة تلقائيًا.",
-    noCmd: true
-  },
-  {
-    title: "تحديث قائمة الحزم",
-    badge: "أول أمر",
-    desc: "قبل أي تثبيت لازم نحدّث قاعدة بيانات حزم Termux لنضمن الحصول على أحدث الإصدارات. اختر أداتك وانسخ الأمر.",
-    cmd: "pkg update -y && pkg upgrade -y",
-    note: "إذا سألك Termux عن استبدال ملف إعداد اكتب Y واضغط Enter.",
-    toolSelector: false
-  },
-  {
-    title: "تثبيت Node.js",
-    badge: "أساسي",
-    desc: "OmniRoute مبني على Node.js. هنثبّته الآن مع curl الذي سنستخدمه لاحقًا لاختبار الاتصال.",
-    cmd: "pkg install -y nodejs curl",
-    note: "حجم التنزيل تقريبًا 60–80 ميجابايت. تأكد من اتصال جيد.",
-    toolSelector: false
-  },
-  {
-    title: "تثبيت OmniRoute",
-    badge: "الأهم",
-    desc: "نثبّت OmniRoute كحزمة عالمية (global) عبر npm. بعد التثبيت تصبح أداة omniroute متاحة من أي مسار داخل Termux.",
-    cmd: "npm install -g omniroute",
-    note: "قد يستغرق التثبيت من دقيقة إلى ثلاث دقائق حسب سرعة الاتصال.",
-    toolSelector: false
-  },
-  {
-    title: "تشغيل السيرفر",
-    badge: "تشغيل",
-    desc: `افتح جلسة Termux جديدة بالضغط المطوّل ثم New Session أو عبر swipe يسار.
-شغّل السيرفر في هذه الجلسة — سيستمع على البورت 20128 ويجب أن يبقى يعمل.`,
-    cmd: "omniroute start",
-    note: "إذا أردت تشغيله في الخلفية استخدم: omniroute start &",
-    toolSelector: false
-  },
-  {
-    title: "ربط الأداة واختبار الاتصال",
-    badge: "اختبار",
-    desc: "افتح tab جديد في Termux. اختر الأداة التي تريد ربطها بـ OmniRoute — سيتغير الأمر تلقائيًا ليناسبها.",
-    cmds: {
-      'claude-code': 'omniroute run claude --model auto',
-      'cursor': 'omniroute configure cursor',
-      'cline': 'omniroute configure cline',
-      'opencode': 'omniroute run opencode --model auto',
-      'aider': 'omniroute run aider --model auto',
-      'continue': 'omniroute configure continue',
-      '_test': 'curl http://localhost:20128/v1/chat/completions -H "Content-Type: application/json" -d \'{"model":"auto","messages":[{"role":"user","content":"مرحبا"}]}\''
-    },
-    defaultTool: '_test',
-    note: "إذا ظهر JSON يحتوي على content فالسيرفر يعمل بنجاح."
-  }
-];
-
-const DOWNLOAD_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
-
-const STEPS_IPHONE = [
-  {
-    title: "تنزيل وتثبيت iSH",
-    badge: "مطلوب",
-    desc: `iOS مش بيسمح بتشغيل Termux، فهنستخدم بديله: iSH — تطبيق مجاني ومتاح رسميًا على App Store بيشغّل بيئة Linux (Alpine) جوه آيفونك.
-افتح App Store وحمّله، أو استخدم الرابط تحت.`,
-    downloads: [
-      {
-        href: "https://apps.apple.com/app/ish-shell/id1436902243",
-        label: "iSH Shell",
-        sub: "التطبيق الرسمي على App Store",
-        icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>`
-      }
-    ],
-    note: "بعد التثبيت افتح iSH وانتظر لحد ما تظهر شاشة الطرفية (Terminal) — أول تشغيل بياخد شوية ثواني.",
-    noCmd: true
-  },
-  {
-    title: "تحديث حزم Alpine",
-    badge: "أول أمر",
-    desc: "قبل أي تثبيت لازم نحدّث قائمة حزم Alpine Linux اللي جوه iSH.",
-    cmd: "apk update && apk upgrade",
-    note: "العملية دي ممكن تاخد وقت أطول من المتوقع، لأن iSH بيحاكي معمارية x86 على شريحة آيفون — ده طبيعي وليس تعليقًا.",
-    toolSelector: false
-  },
-  {
-    title: "تثبيت Node.js",
-    badge: "أساسي",
-    desc: "OmniRoute مبني على Node.js. هنثبّته الآن مع curl الذي سنستخدمه لاحقًا لاختبار الاتصال.",
-    cmd: "apk add nodejs npm curl",
-    note: "التثبيت ممكن ياخد بضع دقايق بسبب المحاكاة — استحمّل شوية ومتقفلش التطبيق.",
-    toolSelector: false
-  },
-  {
-    title: "تثبيت OmniRoute",
-    badge: "الأهم",
-    desc: "نثبّت OmniRoute كحزمة عالمية (global) عبر npm. iSH بيدّيك صلاحيات root افتراضيًا فمش محتاج sudo.",
-    cmd: "npm install -g omniroute",
-    note: "قد يستغرق التثبيت وقتًا أطول من أندرويد أو الكمبيوتر بسبب محاكاة iSH.",
-    toolSelector: false
-  },
-  {
-    title: "تشغيل السيرفر",
-    badge: "تشغيل",
-    desc: `افتح تبويب جديد في iSH (زرار التبويبات في الأعلى، أو اسحب من الحافة) وشغّل السيرفر — هيستمع على البورت 20128.`,
-    cmd: "omniroute start",
-    note: "لازم iSH يفضل مفتوح (في المقدمة أو الخلفية القريبة) عشان السيرفر يفضل شغال — نظام iOS بيوقف التطبيقات في الخلفية بسرعة أحيانًا.",
-    toolSelector: false
-  },
-  {
-    title: "ربط الأداة واختبار الاتصال",
-    badge: "اختبار",
-    desc: "افتح تبويب جديد تاني في iSH (السيرفر لازم يفضل شغال في التبويب الأول). اختر الأداة اللي عايز تربطها بـ OmniRoute.",
-    cmds: {
-      'claude-code': 'omniroute run claude --model auto',
-      'cursor': 'omniroute configure cursor',
-      'cline': 'omniroute configure cline',
-      'opencode': 'omniroute run opencode --model auto',
-      'aider': 'omniroute run aider --model auto',
-      'continue': 'omniroute configure continue',
-      '_test': 'curl http://localhost:20128/v1/chat/completions -H "Content-Type: application/json" -d \'{"model":"auto","messages":[{"role":"user","content":"مرحبا"}]}\''
-    },
-    defaultTool: '_test',
-    note: "إذا ظهر JSON يحتوي على content فالسيرفر يعمل بنجاح."
-  }
-];
-
-const STEPS_WINDOWS = [
-  {
-    title: "تثبيت Node.js على ويندوز",
-    badge: "مطلوب",
-    desc: `OmniRoute مبني على Node.js، فلازم نثبّته الأول. حمّل نسخة LTS (الموصى بها والأكثر استقرارًا) من الموقع الرسمي.
-شغّل ملف الـ .msi اللي هينزل، واضغط Next على كل الخطوات، ومهم جدًا تسيب خيار "Add to PATH" مفعّل زي ما هو افتراضيًا.`,
-    downloads: [
-      {
-        href: "https://nodejs.org/en/download",
-        label: "Node.js LTS — Windows Installer",
-        sub: "الموقع الرسمي — اختر Windows Installer (.msi)",
-        icon: DOWNLOAD_ICON
-      }
-    ],
-    note: "بعد ما التثبيت يخلص، لو الويزارد طلب منك إعادة تشغيل الجهاز، أعد تشغيله قبل ما تكمل.",
-    noCmd: true
-  },
-  {
-    title: "التأكد من التثبيت",
-    badge: "تحقق",
-    desc: `افتح Command Prompt أو PowerShell: اضغط على مفتاح ⊞ Win في الكيبورد، اكتب "cmd" أو "PowerShell"، واضغط Enter.
-بعدين شغّل الأمر ده للتأكد إن Node.js وnpm اتثبتوا صح:`,
-    cmd: "node -v && npm -v",
-    note: "المفروض تشوف رقمين إصدار زي v20.11.0 و10.2.4. لو ظهرت رسالة 'not recognized' معناها الـ PATH محتاج إعادة تشغيل الجهاز — أعد التشغيل وجرب تاني.",
-    toolSelector: false
-  },
-  {
-    title: "تثبيت OmniRoute",
-    badge: "الأهم",
-    desc: "من نفس نافذة Command Prompt أو PowerShell، ثبّت OmniRoute كأداة عالمية (global) عبر npm. بعد التثبيت هتقدر تستخدم أمر omniroute من أي مكان.",
-    cmd: "npm install -g omniroute",
-    note: "قد يستغرق دقيقة لثلاث دقائق حسب سرعة الإنترنت. لو ظهرت مشكلة صلاحيات، شغّل Command Prompt كـ 'Run as Administrator'.",
-    toolSelector: false
-  },
-  {
-    title: "تشغيل السيرفر",
-    badge: "تشغيل",
-    desc: `افتح نافذة Command Prompt أو PowerShell جديدة (سيبها مفتوحة طول ما بتستخدم الأداة) وشغّل السيرفر — هيستمع على البورت 20128.`,
-    cmd: "omniroute start",
-    note: "متقفلش النافذة دي وإنت شغّال — قفلها بس لما تخلص عشان توقف السيرفر.",
-    toolSelector: false
-  },
-  {
-    title: "ربط الأداة واختبار الاتصال",
-    badge: "اختبار",
-    desc: "افتح نافذة Command Prompt أو PowerShell جديدة تانية (السيرفر لازم يفضل شغال في النافذة الأولى). اختر الأداة اللي عايز تربطها — الأمر هيتغير تلقائيًا.",
-    cmds: {
-      'claude-code': 'omniroute run claude --model auto',
-      'cursor': 'omniroute configure cursor',
-      'cline': 'omniroute configure cline',
-      'opencode': 'omniroute run opencode --model auto',
-      'aider': 'omniroute run aider --model auto',
-      'continue': 'omniroute configure continue',
-      '_test': 'curl http://localhost:20128/v1/chat/completions -H "Content-Type: application/json" -d "{\\"model\\":\\"auto\\",\\"messages\\":[{\\"role\\":\\"user\\",\\"content\\":\\"مرحبا\\"}]}"'
-    },
-    defaultTool: '_test',
-    note: "curl مثبت افتراضيًا في ويندوز 10/11. لو ظهر JSON فيه content فالسيرفر شغال تمام."
-  }
-];
-
-const STEPS_LINUX = [
-  {
-    title: "تحديث النظام",
-    badge: "أول أمر",
-    desc: `افتح Terminal وحدّث قائمة الحزم قبل أي تثبيت. الأمر التالي لتوزيعات Debian/Ubuntu (الأشهر).
-لو بتستخدم Fedora أو Arch أو توزيعة تانية، قوللي وهجهزلك الأوامر المناسبة ليها.`,
-    cmd: "sudo apt update && sudo apt upgrade -y",
-    note: "هيطلب باسورد المستخدم (كلمة السر مش هتظهر وإنت بتكتبها، ده طبيعي) — اكتبها واضغط Enter.",
-    toolSelector: false
-  },
-  {
-    title: "تثبيت Node.js وcurl",
-    badge: "أساسي",
-    desc: `هنثبّت Node.js من مستودع NodeSource للحصول على أحدث إصدار LTS بدل نسخة apt القديمة، مع curl لاختبار الاتصال لاحقًا.`,
-    cmd: "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs curl",
-    downloads: [
-      {
-        href: "https://github.com/nodesource/distributions",
-        label: "NodeSource Distributions",
-        sub: "المصدر الرسمي للأمر (لو حبيت تراجعه بنفسك)",
-        icon: DOWNLOAD_ICON
-      }
-    ],
-    note: "بعد التثبيت تأكد بـ: node -v && npm -v",
-    toolSelector: false
-  },
-  {
-    title: "تثبيت OmniRoute",
-    badge: "الأهم",
-    desc: "نثبّت OmniRoute كحزمة عالمية (global) عبر npm.",
-    cmd: "sudo npm install -g omniroute",
-    note: "لو ظهر خطأ صلاحيات (EACCES) جرب: sudo npm install -g omniroute --unsafe-perm",
-    toolSelector: false
-  },
-  {
-    title: "تشغيل السيرفر",
-    badge: "تشغيل",
-    desc: `افتح تبويب Terminal جديد (Ctrl+Shift+T غالبًا) وشغّل السيرفر — هيستمع على البورت 20128 ويجب أن يبقى يعمل.`,
-    cmd: "omniroute start",
-    note: "لو عايز تشغّله في الخلفية استخدم: omniroute start &",
-    toolSelector: false
-  },
-  {
-    title: "ربط الأداة واختبار الاتصال",
-    badge: "اختبار",
-    desc: "افتح تبويب Terminal جديد (السيرفر لازم يفضل شغال في التبويب الأول). اختر الأداة اللي عايز تربطها بـ OmniRoute.",
-    cmds: {
-      'claude-code': 'omniroute run claude --model auto',
-      'cursor': 'omniroute configure cursor',
-      'cline': 'omniroute configure cline',
-      'opencode': 'omniroute run opencode --model auto',
-      'aider': 'omniroute run aider --model auto',
-      'continue': 'omniroute configure continue',
-      '_test': 'curl http://localhost:20128/v1/chat/completions -H "Content-Type: application/json" -d \'{"model":"auto","messages":[{"role":"user","content":"مرحبا"}]}\''
-    },
-    defaultTool: '_test',
-    note: "إذا ظهر JSON يحتوي على content فالسيرفر يعمل بنجاح."
-  }
-];
-
-let STEPS = null;
-let currentDevice = null;
-let currentOS = null;
-
-window.choosePlatform = function(device) {
-  currentDevice = device;
-  document.querySelectorAll('#device-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.device === device));
-  document.getElementById('os-select').style.display = 'none';
-  document.getElementById('phone-os-select').style.display = 'none';
-  if (device === 'phone') {
-    currentOS = null;
-    document.getElementById('phone-os-select').style.display = 'block';
-    document.getElementById('phone-os-select').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  } else {
-    document.getElementById('os-select').style.display = 'block';
-    document.getElementById('os-select').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-};
-
-window.choosePhoneOS = function(os) {
-  currentOS = os;
-  document.querySelectorAll('#phone-os-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.os === os));
-  startGuide(os === 'ios' ? STEPS_IPHONE : STEPS_PHONE);
-};
-
-window.chooseOS = function(os) {
-  currentOS = os;
-  document.querySelectorAll('#os-chips .platform-chip').forEach(c => c.classList.toggle('selected', c.dataset.os === os));
-  startGuide(os === 'windows' ? STEPS_WINDOWS : STEPS_LINUX);
-};
-
-function startGuide(stepsArr) {
-  STEPS = stepsArr;
-  currentStep = 0;
-  selectedTools = {};
-  document.getElementById('progress-bar-wrap').style.display = 'flex';
-  document.getElementById('final-screen').classList.remove('show');
-  renderQuickRun();
-  renderSteps();
-  saveProgress(currentDevice, currentOS, 0);
-  document.getElementById('progress-bar-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-/* ── Quick run: one combined command per platform ── */
-const QUICKRUN = {
-  phone: {
-    label: 'Termux',
-    cmd: 'pkg update -y && pkg upgrade -y && pkg install -y nodejs curl && npm install -g omniroute && omniroute start',
-    note: 'الأمر ده بيعمل كل خطوات التثبيت والتشغيل مرة واحدة. لازم تفتح Termux وتلزقه بنفسك — المتصفح مينفعش يشغّل أوامر جوه تطبيق تاني لأسباب أمان.'
-  },
-  ios: {
-    label: 'iSH',
-    cmd: 'apk update && apk upgrade && apk add nodejs npm curl && npm install -g omniroute && omniroute start',
-    note: 'الأمر ده بيعمل كل خطوات التثبيت والتشغيل مرة واحدة داخل iSH. لازم تفتحه وتلزقه بنفسك، وممكن ياخد وقت أطول من المتوقع لأن iSH بيحاكي Linux على آيفون.'
-  },
-  windows: {
-    label: 'PowerShell',
-    cmd: 'winget install OpenJS.NodeJS.LTS -e --silent; npm install -g omniroute; omniroute start',
-    note: 'محتاج winget (متوفر افتراضيًا في ويندوز 10/11 المحدّثة) — افتح PowerShell كمسؤول (Run as Administrator) والصق الأمر. لو فشل اتبع خطوات التثبيت اليدوي تحت.'
-  },
-  linux: {
-    label: 'Terminal',
-    cmd: 'curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs curl && sudo npm install -g omniroute && omniroute start',
-    note: 'الأمر مبني على Debian/Ubuntu. افتح Terminal والصقه — هيطلب باسورد المستخدم (sudo).'
-  }
-};
-
-function renderQuickRun() {
-  const card = document.getElementById('quickrun-card');
-  const key = currentDevice === 'phone' ? (currentOS === 'ios' ? 'ios' : 'phone') : currentOS;
-  if (!key || !QUICKRUN[key]) { card.style.display = 'none'; return; }
-  const q = QUICKRUN[key];
-  const safe = q.cmd.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  card.style.display = 'block';
-  card.innerHTML = `
-    <div class="quickrun-head">
-      <div class="quickrun-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        تشغيل مباشر — أمر واحد بس (${q.label})
-      </div>
-    </div>
-    <div class="terminal">
-      <div class="terminal-bar">
-        <div class="term-dots"><div class="term-dot term-dot-r"></div><div class="term-dot term-dot-y"></div><div class="term-dot term-dot-g"></div></div>
-        <div class="term-title">${q.label}</div>
-      </div>
-      <div class="terminal-body">
-        <span class="term-prompt">$</span>
-        <div class="term-cmd" id="quickrun-cmd">${safe}</div>
-      </div>
-    </div>
-    <div class="btn-row">
-      <button class="btn-copy" id="quickrun-copy-btn" onclick="copyQuickRun()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        انسخ الأمر الشامل
-      </button>
-    </div>
-    <div class="quickrun-note">${q.note}</div>
-  `;
-}
-
-window.copyQuickRun = function() {
-  const key = currentDevice === 'phone' ? (currentOS === 'ios' ? 'ios' : 'phone') : currentOS;
-  const q = QUICKRUN[key];
-  if (!q) return;
-  const btn = document.getElementById('quickrun-copy-btn');
-  navigator.clipboard.writeText(q.cmd).then(() => {
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> تم النسخ`;
-    btn.classList.add('copied');
-    setTimeout(() => { renderQuickRun(); }, 3000);
-  }).catch(() => {
-    btn.textContent = 'انسخ يدويًا من الأعلى';
-  });
-};
-
-
-let currentStep = 0;
-let selectedTools = {};
-
-function pct() {
-  return Math.round((currentStep / STEPS.length) * 100);
-}
-
-function renderSteps() {
-  const wrap = document.getElementById('steps-wrap');
-  const pf = document.getElementById('prog-fill');
-  const pfrac = document.getElementById('prog-frac');
-  pf.style.width = pct() + '%';
-  pfrac.textContent = currentStep + ' / ' + STEPS.length;
-
-  if (currentStep >= STEPS.length) {
-    wrap.innerHTML = '';
-    const finalScreen = document.getElementById('final-screen');
-    const alreadyShown = finalScreen.classList.contains('show');
-    finalScreen.classList.add('show');
-    document.getElementById('server-status').classList.remove('show');
-    if (!alreadyShown) {
-      fireConfetti();
-      if (typeof trackCompletion === 'function') trackCompletion(currentDevice, currentOS);
-    }
-    return;
-  }
-
-  document.getElementById('final-screen').classList.remove('show');
-
-  let html = '';
-  STEPS.forEach((s, i) => {
-    const isDone = i < currentStep;
-    const isActive = i === currentStep;
-    const cls = isDone ? 'step-card is-done' : isActive ? 'step-card is-active' : 'step-card';
-    const numTxt = isDone
-      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
-      : (i + 1);
-    const eyebrow = isDone ? 'مكتملة' : isActive ? 'الخطوة الحالية' : 'لاحقًا';
-
-    html += `<div class="${cls}" id="sc-${i}">
-      <div class="step-head">
-        <div class="step-num">${numTxt}</div>
-        <div class="step-meta">
-          <div class="step-eyebrow">${eyebrow}</div>
-          <div class="step-title">${s.title}</div>
-        </div>
-        <div class="step-badge">${s.badge}</div>
-      </div>`;
-
-    if (isActive) {
-      html += `<div class="step-body">
-        <div class="step-desc">${s.desc.replace(/\n/g,'<br>')}</div>`;
-
-      // Download links
-      if (s.downloads) {
-        s.downloads.forEach(d => {
-          html += `<a href="${d.href}" target="_blank" class="dl-link">
-            <div class="dl-link-icon">${d.icon}</div>
-            <div class="dl-link-meta">
-              <div class="dl-link-name">${d.label}</div>
-              <div class="dl-link-sub">${d.sub}</div>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>`;
-        });
-      }
-
-      // Tool selector for last step
-      if (s.cmds) {
-        const activeTool = selectedTools[i] || (window.userProfile && window.userProfile.preferredTool) || s.defaultTool;
-        const toolOpts = Object.assign({ '_test': 'اختبار الاتصال فقط (curl)' }, TOOLS);
-        html += `<div class="tool-selector-label">اختر الأداة التي تريد ربطها:</div>
-          <div class="tool-selector">`;
-        Object.entries(toolOpts).forEach(([k, v]) => {
-          html += `<div class="tool-chip${k===activeTool?' selected':''}" onclick="selectTool(${i},'${k}')">
-            <div class="tool-chip-dot"></div>${v}
-          </div>`;
-        });
-        html += `</div>`;
-
-        // Terminal with selected command
-        const cmd = s.cmds[activeTool] || s.cmds[s.defaultTool];
-        html += buildTerminal(cmd, 'cmd-' + i);
-      } else if (!s.noCmd) {
-        // Regular command
-        html += buildTerminal(s.cmd, 'cmd-' + i);
-      }
-
-      if (s.note) {
-        html += `<div class="note-box">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span>${s.note}</span>
-        </div>`;
-      }
-
-      html += `<div class="btn-row">`;
-      if (!s.noCmd) {
-        const place = currentDevice === 'laptop' ? (currentOS === 'windows' ? 'Command Prompt' : 'Terminal') : (currentOS === 'ios' ? 'iSH' : 'Termux');
-        html += `<button class="btn-copy" id="cp-${i}" onclick="copyCmd(${i})">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          انسخ الأمر والصقه في ${place}
-        </button>`;
-      }
-      html += `<button class="btn-next" onclick="nextStep()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-        ${i < STEPS.length-1 ? 'نفّذت — الخطوة التالية' : 'إنهاء'}
-      </button></div>`;
-
-      html += `</div>`;
-    } else if (isDone) {
-      html += `<div class="done-tag">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        تم تنفيذها بنجاح
-      </div>`;
-    }
-
-    html += `</div>`;
-  });
-
-  wrap.innerHTML = html;
-}
-
-function buildTerminal(cmd, id) {
-  const safe = cmd.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const title = currentDevice === 'laptop' ? (currentOS === 'windows' ? 'Command Prompt' : 'Terminal') : (currentOS === 'ios' ? 'iSH' : 'Termux');
-  return `<div class="terminal">
-    <div class="terminal-bar">
-      <div class="term-dots">
-        <div class="term-dot term-dot-r"></div>
-        <div class="term-dot term-dot-y"></div>
-        <div class="term-dot term-dot-g"></div>
-      </div>
-      <div class="term-title">${title}</div>
-    </div>
-    <div class="terminal-body">
-      <span class="term-prompt">$</span>
-      <div class="term-cmd" id="${id}">${safe}</div>
-    </div>
-  </div>`;
-}
-
-function getCurrentCmd(stepIdx) {
-  const s = STEPS[stepIdx];
-  if (s.cmds) {
-    const tool = selectedTools[stepIdx] || s.defaultTool;
-    return s.cmds[tool];
-  }
-  return s.cmd || '';
-}
-
-window.selectTool = function(stepIdx, toolKey) {
-  selectedTools[stepIdx] = toolKey;
-  renderSteps();
-  if (typeof savePreferredTool === 'function') savePreferredTool(toolKey);
-};
-
-window.copyCmd = function(stepIdx) {
-  const cmd = getCurrentCmd(stepIdx);
-  if (!cmd) return;
-  const place = currentDevice === 'laptop' ? (currentOS === 'windows' ? 'Command Prompt' : 'Terminal') : (currentOS === 'ios' ? 'iSH' : 'Termux');
-  const btn = document.getElementById('cp-' + stepIdx);
-  navigator.clipboard.writeText(cmd).then(() => {
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> تم النسخ — افتح ${place} والصق`;
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> انسخ الأمر والصقه في ${place}`;
-      btn.classList.remove('copied');
-    }, 3000);
-  }).catch(() => {
-    btn.textContent = 'انسخ من الحقل أعلاه يدويًا';
-  });
-};
-
-window.nextStep = function() {
-  if (currentStep < STEPS.length) currentStep++;
-  renderSteps();
-  saveProgress(currentDevice, currentOS, currentStep);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-window.restartGuide = function() {
-  currentStep = 0;
-  selectedTools = {};
-  document.getElementById('final-screen').classList.remove('show');
-  renderSteps();
-  saveProgress(currentDevice, currentOS, 0);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-/* ── Live server status checker ── */
-window.checkServerStatus = async function() {
-  const btn = document.getElementById('status-check-btn');
-  const el = document.getElementById('server-status');
-  btn.disabled = true;
-  el.className = 'server-status show checking';
-  el.innerHTML = '<span class="status-dot"></span> جارِ التحقق...';
-  try {
-    const res = await fetch('http://localhost:20128/v1/models', { method: 'GET', mode: 'cors' });
-    el.className = 'server-status show online';
-    el.innerHTML = '<span class="status-dot"></span> السيرفر شغال ✅ (رد بحالة ' + res.status + ')';
-  } catch (e) {
-    el.className = 'server-status show offline';
-    el.innerHTML = '<span class="status-dot"></span> مش شغال، أو المتصفح منعه — جرّب الرابط اليدوي تحت';
-  }
-  btn.disabled = false;
-};
-
-/* ── Confetti celebration ── */
-function fireConfetti() {
-  const emojis = ['🎉','✨','🚀','⚡','🎊'];
-  for (let i = 0; i < 16; i++) {
-    const span = document.createElement('span');
-    span.className = 'confetti-piece';
-    span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-    span.style.left = Math.random() * 100 + 'vw';
-    span.style.animationDuration = (2 + Math.random() * 1.5) + 's';
-    span.style.fontSize = (14 + Math.random() * 12) + 'px';
-    document.body.appendChild(span);
-    setTimeout(() => span.remove(), 4000);
-  }
-}
-
-/* ── Animated hero stats count-up ── */
-function animateStats() {
-  document.querySelectorAll('.stat-num').forEach(el => {
-    const raw = el.textContent.trim();
-    const match = raw.match(/^([\d.]+)(.*)$/);
-    if (!match) return;
-    const target = parseFloat(match[1]);
-    const suffix = match[2];
-    const decimals = match[1].includes('.') ? match[1].split('.')[1].length : 0;
-    const duration = 1000;
-    const start = performance.now();
-    function tick(now) {
-      const p = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = (target * eased).toFixed(decimals) + suffix;
-      if (p < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  });
-}
-
-/* ── FAQ accordion ── */
-const FAQ_ITEMS = [
-  {
-    q: 'السيرفر بيقفل لما أقفل التطبيق أو التبويب — إزاي أخليه شغال في الخلفية؟',
-    a: 'على الهاتف: شغّل الأمر بـ <code>omniroute start &</code> عشان يفضل شغال حتى لو قفلت الـ tab (لكن لازم Termux نفسه يفضل مفتوح في الخلفية، وميتقفلش من إعدادات توفير البطارية). على ويندوز ولينكس: سيب نافذة الطرفية مفتوحة طول ما بتستخدم الأداة.'
-  },
-  {
-    q: 'ظهرت رسالة "port already in use" أو "EADDRINUSE" — أعمل إيه؟',
-    a: 'ده معناه إن فيه نسخة تانية من السيرفر شغالة فعلًا على نفس البورت (20128). أوقف النسخة القديمة الأول (اقفل نافذة الطرفية بتاعتها أو اعمل Ctrl+C) وبعدين شغّل <code>omniroute start</code> تاني.'
-  },
-  {
-    q: 'إزاي أوقف السيرفر؟',
-    a: 'ارجع لنافذة الطرفية اللي شغّلت فيها <code>omniroute start</code> واضغط <code>Ctrl+C</code>. لو شغّلته في الخلفية بـ <code>&</code>، استخدم <code>pkill -f omniroute</code>.'
-  },
-  {
-    q: 'الأداة (Cursor / Claude Code / إلخ) مش بتتصل بالسيرفر ليه؟',
-    a: 'تأكد إن السيرفر لسه شغال (استخدم زرار "تحقق من حالة السيرفر" فوق)، وإن الأداة مضبوطة على نفس الـ endpoint: <code>http://localhost:20128/v1</code>. لو الأداة على جهاز تاني في نفس الشبكة، استبدل <code>localhost</code> بعنوان IP جهازك.'
-  },
-  {
-    q: 'أقدر أستخدم أكتر من جهاز بنفس الحساب؟',
-    a: 'أيوة، تقدر تسجل دخول بنفس الحساب من الهاتف واللابتوب مع بعض. كل جهاز بيشغّل نسخته الخاصة من السيرفر محليًا — التقدم اللي بتحفظه ليك بيتزامن حسب آخر جهاز اشتغلت عليه.'
-  }
-];
-
-function renderFaq() {
-  const list = document.getElementById('faq-list');
-  list.innerHTML = FAQ_ITEMS.map((item, i) => `
-    <div class="faq-item" id="faq-${i}">
-      <div class="faq-q" onclick="toggleFaq(${i})">
-        <span>${item.q}</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </div>
-      <div class="faq-a">${item.a}</div>
-    </div>
-  `).join('');
-}
-
-window.toggleFaq = function(i) {
-  document.getElementById('faq-' + i).classList.toggle('open');
-};
-
-renderFaq();
-</script>
-
 </body>
 </html>
